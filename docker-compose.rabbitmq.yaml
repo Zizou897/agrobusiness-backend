@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3.12.7-management
+    container_name: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - devbridge
+    hostname: rabbitmq
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+
+networks:
+  devbridge:
+    external: true

@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=lRksqusLGHDIdhp
+      - POSTGRES_DB=db_prod
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: always
+    networks:
+      - devbridge
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=lRksqusLGHDIdhp
+    ports:
+      - "5050:80"
+    restart: always
+    networks:
+      - devbridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  devbridge:
+    external: true
+    
