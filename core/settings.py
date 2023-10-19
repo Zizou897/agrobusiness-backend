@@ -24,7 +24,7 @@ SECRET_KEY = env.str("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0", "localhost"]
+ALLOWED_HOSTS = ["0.0.0.0", "localhost", "services.devslabel.com", "31.220.72.160"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -92,8 +92,13 @@ SERVER_EMAIL = env.str("SERVER_EMAIL")
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        # "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": env.str("DB_ENGINE_PROD"),
+        "HOST": env.str("DB_HOST"),
+        "NAME": env.str("DB_NAME"),
+        "USER": env.str("DB_USER"),
+        "PASSWORD": env.str("DB_PASSWORD"),
+        "PORT": env.int("DB_PORT"),
     }
 }
 
@@ -116,9 +121,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # CORS
-CORS_ALLOWED_ORIGINS = ["http://localhost:8000", "http://localhost:4100"]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://localhost:4100",
+    "http://31.220.72.160",
+    "https://services.devslabel.com",
+]
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:8000"]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://31.220.72.160",
+    "https://services.devslabel.com",
+]
 
 CORS_ALLOW_METHODS = (
     "DELETE",
