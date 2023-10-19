@@ -10,7 +10,9 @@ class VerifyCodeOTPUsecase:
 
     def execute(self, code: str, user_id):
         hotp_device = get_object_or_404(HOTPDevice, user_id=user_id)
-        is_verified = self.hotp_verification.verify_token(hotp_device.counter, code, hotp_device.key)
+        is_verified = self.hotp_verification.verify_token(
+            hotp_device.counter, code, hotp_device.key
+        )
         if is_verified is False:
             raise CodeNotCorrectError
         else:

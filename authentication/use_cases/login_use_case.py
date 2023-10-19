@@ -1,5 +1,8 @@
 from django.contrib.auth import authenticate
-from authentication.exceptions import LoginFailedError, UserNotActiveError, UserRegistrationNotCompleteError
+from authentication.exceptions import (
+    LoginFailedError,
+    UserRegistrationNotCompleteError,
+)
 from authentication.models import User
 
 

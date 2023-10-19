@@ -7,9 +7,9 @@ from authentication.use_cases.verify_otp_code_use_case import VerifyCodeOTPUseca
 class ResetPasswordUsecase:
     @staticmethod
     def execute(**kwargs):
-        user_email = kwargs.get('email')
-        password = kwargs.get('password')
-        otp_code = kwargs.get('code')
+        user_email = kwargs.get("email")
+        password = kwargs.get("password")
+        otp_code = kwargs.get("code")
 
         user = get_object_or_404(User, email=user_email)
         use_case = VerifyCodeOTPUsecase()

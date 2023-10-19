@@ -4,12 +4,12 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/v1/auth/', include('authentication.urls')),
-    path('api/v1/settings/', include('settings.urls')),
-    path('api/v1/advert/', include('advert.urls')),
-    path('api/v1/account/', include('account.urls')),
-    path('api/v1/news/', include('news.urls')),
+    path("admin/", admin.site.urls),
+    path("api/v1/auth/", include("authentication.urls")),
+    path("api/v1/settings/", include("settings.urls")),
+    path("api/v1/advert/", include("advert.urls")),
+    path("api/v1/account/", include("account.urls")),
+    path("api/v1/news/", include("news.urls")),
 ]
 
 

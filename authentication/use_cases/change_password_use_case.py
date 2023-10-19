@@ -1,5 +1,7 @@
-from authentication.exceptions import OldPasswordNotCorrectError, \
-    OldPaswwordAndNewPasswordAreSameError
+from authentication.exceptions import (
+    OldPasswordNotCorrectError,
+    OldPaswwordAndNewPasswordAreSameError,
+)
 from authentication.models import User
 
 

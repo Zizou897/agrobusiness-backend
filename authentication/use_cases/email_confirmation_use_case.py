@@ -6,8 +6,8 @@ from authentication.use_cases.verify_otp_code_use_case import VerifyCodeOTPUseca
 class EmailConfirmationUseCase:
     @staticmethod
     def execute(**kwargs):
-        code = kwargs.get('code')
-        email = kwargs.get('email')
+        code = kwargs.get("code")
+        email = kwargs.get("email")
 
         # Vérifier si l'e-mail existe dans la base de données et est non vérifié
         user = User.objects.filter(email=email, is_verified=False).first()
@@ -23,5 +23,3 @@ class EmailConfirmationUseCase:
                 raise CodeNotCorrectError
         else:
             raise CodeNotCorrectError
-
-

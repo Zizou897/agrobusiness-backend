@@ -4,6 +4,19 @@ from .models import User
 from cities_light.models import Country
 
 
+class UserEssentialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "profil_type",
+        ]
+
+
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=True, write_only=True)
     password = serializers.CharField(required=True, write_only=True)
@@ -18,7 +31,9 @@ class LoginSerializer(serializers.Serializer):
 class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     username = serializers.CharField(required=True, write_only=True)
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
+    country = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.all(), required=False
+    )
     phone_number = serializers.CharField(required=False, write_only=True)
     first_name = serializers.CharField(required=False, write_only=True)
     last_name = serializers.CharField(required=False, write_only=True)
@@ -27,20 +42,22 @@ class RegisterSerializer(serializers.Serializer):
     profil_type = serializers.CharField(required=True, write_only=True)
 
     def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Les mots de passe ne correspondent pas"})
+        if attrs["password"] != attrs["password2"]:
+            raise serializers.ValidationError(
+                {"password": "Les mots de passe ne correspondent pas"}
+            )
         return attrs
 
     def create(self, validated_data):
         data = {
-            'email': validated_data['email'],
-            'username': validated_data['username'],
-            'password': validated_data['password'],
-            'country': validated_data['country'],
-            'phone_number': validated_data['phone_number'],
-            'first_name': validated_data['first_name'],
-            'last_name': validated_data['last_name'],
-            'profil_type': validated_data['profil_type'],
+            "email": validated_data["email"],
+            "username": validated_data["username"],
+            "password": validated_data["password"],
+            "country": validated_data["country"],
+            "phone_number": validated_data["phone_number"],
+            "first_name": validated_data["first_name"],
+            "last_name": validated_data["last_name"],
+            "profil_type": validated_data["profil_type"],
         }
         return User.objects.create_user(**data)
 
@@ -81,7 +98,6 @@ class EmailConfirmationSerializer(serializers.Serializer):
         pass
 
 
-
 class ResendOTPCodeSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -104,18 +120,20 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class FCMDeviceSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), required=False
+    )
 
     class Meta:
         model = FCMDevice
-        fields = ['name', 'registration_id', 'device_id', 'type', 'user']
+        fields = ["name", "registration_id", "device_id", "type", "user"]
 
     def to_representation(self, instance):
         return {
-            'id': instance.id,
-            'name': instance.name,
-            'registration_id': instance.registration_id,
-            'device_id': instance.device_id,
-            'type': instance.type,
-            'user': instance.user.id
+            "id": instance.id,
+            "name": instance.name,
+            "registration_id": instance.registration_id,
+            "device_id": instance.device_id,
+            "type": instance.type,
+            "user": instance.user.id,
         }

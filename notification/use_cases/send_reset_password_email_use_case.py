@@ -1,6 +1,6 @@
 from rest_framework.generics import get_object_or_404
-from templated_mail.mail import BaseEmailMessage
 from authentication.models import User
+from notification.send_notification import SendNotification
 
 
 class SendResetPasswordEmailUseCase:
@@ -17,8 +17,5 @@ class SendResetPasswordEmailUseCase:
             'OTP_CODE': code,
             'USERNAME': recepient_username,
         }
-        html_message = BaseEmailMessage(
-            template_name='reset_password.html',
-            context=context
-        )
-        return html_message.send(to=[recepient_email])
+
+        SendNotification.send_mail(context=context, template_name='reset_password', to=[recepient_email])
