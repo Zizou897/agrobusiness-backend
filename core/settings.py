@@ -151,6 +151,7 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Agrobusiness description",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "SCHEMA_PATH_PREFIX": r"/api/v[0-9]",
 }
 
 # DJANGO SIMPLE JWT
