@@ -24,7 +24,13 @@ SECRET_KEY = env.str("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0", "localhost", "services.devslabel.com", "31.220.72.160"]
+ALLOWED_HOSTS = [
+    "0.0.0.0",
+    "localhost",
+    "services.devslabel.com",
+    "31.220.72.160",
+    "webadmin.devslabel.com",
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -126,12 +132,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:4100",
     "http://31.220.72.160",
     "https://services.devslabel.com",
+    "webadmin.devslabel.com"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://31.220.72.160",
     "https://services.devslabel.com",
+    "webadmin.devslabel.com"
 ]
 
 CORS_ALLOW_METHODS = (
