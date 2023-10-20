@@ -97,13 +97,13 @@ SERVER_EMAIL = env.str("SERVER_EMAIL")
 
 DATABASES = {
     "default": {
-        "NAME": BASE_DIR / "db.sqlite3",
-        "ENGINE": env.str("DB_ENGINE_DEV"),
-        # "HOST": env.str("DB_HOST"),
-        # "NAME": env.str("DB_NAME"),
-        # "USER": env.str("DB_USER"),
-        # "PASSWORD": env.str("DB_PASSWORD"),
-        # "PORT": env.int("DB_PORT"),
+        # "NAME": BASE_DIR / "db.sqlite3",
+        # "ENGINE": env.str("DB_ENGINE_DEV"),
+        "HOST": env.str("DB_HOST"),
+        "NAME": env.str("DB_NAME"),
+        "USER": env.str("DB_USER"),
+        "PASSWORD": env.str("DB_PASSWORD"),
+        "PORT": env.int("DB_PORT"),
     }
 }
 
