@@ -94,7 +94,6 @@ WSGI_APPLICATION = "core.wsgi.application"
 SERVER_EMAIL = env.str("SERVER_EMAIL")
 
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     "default": {
