@@ -20,4 +20,4 @@ class SendVerificationEmailUseCase:
             template_name='email_verification.html',
             context=context
         )
-        return html_message.send(to=['96fa9eadad@emailboxa.online'])
+        return html_message.send(to=[recepient_email])
