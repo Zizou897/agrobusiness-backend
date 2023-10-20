@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from cities_light.models import Country
 from settings.models import (
     DeliveryMethod,
     Measure,
@@ -77,3 +78,9 @@ class DeliveryMethodCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryMethod
         fields = ["name", "language_key"]
+
+
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ['id', 'name', 'slug']

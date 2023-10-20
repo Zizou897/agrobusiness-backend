@@ -1,4 +1,8 @@
 from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from settings.serializers import CountrySerializer
+from cities_light.models import Country
 from rest_framework.viewsets import ModelViewSet
 from settings.models import (
     DeliveryMethod,
@@ -69,3 +73,17 @@ class DeliveryMethodView(ModelViewSet):
         if self.action in ["create", "update"]:
             return DeliveryMethodCreateSerializer
         return DeliveryMethodSerializer
+
+
+class CountryView(APIView):
+    def get(self, request):
+        pays = Country.objects.all()
+        featured_country = Country.objects.get(code2="CI")
+        countries = sorted(pays, key=lambda c: c != featured_country)
+        serializer_context = {
+            "request": request,
+        }
+        serializer = CountrySerializer(
+            instance=countries, many=True, context=serializer_context
+        )
+        return Response(serializer.data)
