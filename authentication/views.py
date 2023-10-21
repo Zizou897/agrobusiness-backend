@@ -10,6 +10,7 @@ from authentication.serializers import (
     ResendOTPCodeSerializer,
     ResetPasswordRequestSerializer,
     ResetPasswordSerializer,
+    UserEssentialSerializer,
 )
 from rest_framework.response import Response
 from rest_framework import status
@@ -80,7 +81,8 @@ class RegisterView(CreateAPIView):
             phone_number=phone_number,
             country=country,
         )
-        return Response(data=user.id, status=201)
+
+        return Response(data={"user_id": user.id}, status=201)
 
 
 class EmailConfirmationView(CreateAPIView):
