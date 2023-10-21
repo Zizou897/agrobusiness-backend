@@ -27,6 +27,7 @@ services:
     command: celery -A core worker -l info --pool=solo
     depends_on:
       - web
+      - postgres
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
     networks:
@@ -37,6 +38,7 @@ services:
     command: celery -A core beat -l info
     depends_on:
       - celery
+      - postgres
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
     networks:
