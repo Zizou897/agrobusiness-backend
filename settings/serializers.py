@@ -18,7 +18,7 @@ class ProductCategoryCreateSerializer(serializers.ModelSerializer):
 class ProductCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductCategory
-        fields = ["id", "name", "language_key"]
+        fields = ["id", "name", "language_key", "slug", "image"]
 
 
 class SectorSerializer(serializers.ModelSerializer):

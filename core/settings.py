@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "drf_spectacular_sidecar",
     "templated_email",
+    "django_filters",
     "fcm_django",
     "ckeditor",
     "corsheaders",
@@ -69,6 +70,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_otp.middleware.OTPMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -98,12 +100,12 @@ SERVER_EMAIL = env.str("SERVER_EMAIL")
 DATABASES = {
     "default": {
         "NAME": BASE_DIR / "db.sqlite3",
-        "ENGINE": env.str("DB_ENGINE_DEV"),
-        # "HOST": env.str("DB_HOST"),
-        # "NAME": env.str("DB_NAME"),
-        # "USER": env.str("DB_USER"),
-        # "PASSWORD": env.str("DB_PASSWORD"),
-        # "PORT": env.int("DB_PORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        # 'HOST': env.str('DB_HOST'),
+        # 'NAME': env.str('DB_NAME'),
+        # 'USER': env.str('DB_USER'),
+        # 'PASSWORD': env.str('DB_PASSWORD'),
+        # 'PORT': env.int('DB_PORT'),
     }
 }
 
@@ -155,6 +157,7 @@ DATE_INPUT_FORMATS = ["%d-%m-%Y"]
 AUTH_USER_MODEL = "authentication.User"
 
 REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend"),
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],

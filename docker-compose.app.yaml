@@ -6,6 +6,8 @@ services:
     command: /app/startup.sh
     ports:
       - '8000:8000'
+    expose:
+      - 8000
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
       - CELERY_RESULT_BACKEND=django-db
@@ -27,8 +29,6 @@ services:
   celery:
     build: .
     command: celery -A core worker -l info --pool=solo
-    depends_on:
-      - web
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
     networks:

@@ -185,6 +185,8 @@ class ProductImage(models.Model):
         verbose_name = "Product image"
         verbose_name_plural = "Product images"
 
+    def __str__(self):
+        return self.image.name
 
 class ProductComment(models.Model):
     comment = models.TextField(verbose_name="Product comment")

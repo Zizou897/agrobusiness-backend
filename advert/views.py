@@ -1,4 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
+from advert.filter import ProductFilter
 from advert.serializers import (
     AddProductCommentSerializer,
     AddProductImageSerializer,
@@ -17,20 +18,24 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, UpdateAPIView
 from core.exceptions import NotAuthorized
 from .models import ProductFavorite, ProductOrder, Product
+from django_filters import rest_framework as filters
 
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductCreateSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ProductFilter
 
     def perform_create(self, serializer):
         user = self.request.user
         serializer.validated_data["seller"] = user
         return super().perform_create(serializer)
 
-    def get_queryset(self):
-        return Product.objects.filter(seller=self.request.user)
+    # Si l'utilisateur est un vendeur, il ne peut voir que ses produits
+    # def get_queryset(self):
+    #     return Product.objects.all()
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
