@@ -6,6 +6,7 @@ from advert.models import (
     ProductImage,
     ProductOrder,
     SellerDelivery,
+    SectionProduits
 )
 from authentication.serializers import UserEssentialSerializer
 from settings.serializers import MeasureSerializer, ProductCategorySerializer
@@ -60,6 +61,32 @@ class ProductEssentialSerializer(serializers.ModelSerializer):
             "entreprise",
             "images",
             "created_at",
+        ]
+
+
+class SectionProduitsSerializer(serializers.ModelSerializer):
+    products = ProductEssentialSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SectionProduits
+        fields = [
+            "id",
+            "name",
+            "description",
+            "categories",
+            "product_type",
+            "products",
+        ]
+
+
+class SectionProduitsCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SectionProduits
+        fields = [
+            "name",
+            "description",
+            "categories",
+            "product_type",
         ]
 
 

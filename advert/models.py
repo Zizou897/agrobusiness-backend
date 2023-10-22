@@ -8,6 +8,12 @@ from core.validators import validate_image_extension, validate_image_size
 from settings.models import PaymentMethod
 
 
+class ProductType(ExtendedEnum):
+    ALL_PRODUCTS = "ALL_PRODUCTS"
+    NEW_ADDED_PRODUCTS = "NEW_ADDED_PRODUCTS"
+    MOST_SELLING_PRODUCTS = "MOST_SELLING_PRODUCTS"
+
+
 class ProductStatus(ExtendedEnum):
     PUBLISH = "PUBLISH"
     UNPUBLISH = "UNPUBLISH"
@@ -188,6 +194,7 @@ class ProductImage(models.Model):
     def __str__(self):
         return self.image.name
 
+
 class ProductComment(models.Model):
     comment = models.TextField(verbose_name="Product comment")
     product = models.ForeignKey(
@@ -294,3 +301,31 @@ class ProductOrder(models.Model):
     class Meta:
         verbose_name = "Product order"
         verbose_name_plural = "Product orders"
+
+
+class SectionProduits(models.Model):
+    PRODUCT_TYPE = (
+        (ProductType.ALL_PRODUCTS.value, "Tous les produits"),
+        (ProductType.NEW_ADDED_PRODUCTS.value, "Nouveaux produits ajoutés"),
+        (ProductType.MOST_SELLING_PRODUCTS.value, "Produits les plus vendus"),
+    )
+    name = models.CharField(max_length=255, verbose_name='Nom de la section')
+    description = models.TextField(verbose_name='Description de la section')
+    categories = models.ManyToManyField(
+        "settings.ProductCategory",
+        verbose_name="Product product category",
+        related_name="product_category_section",
+        blank=True,
+    )
+    product_type = models.CharField(
+        choices=PRODUCT_TYPE,
+        max_length=255,
+        verbose_name="Product type",
+        default=ProductType.ALL_PRODUCTS.value,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Section created at"
+    )
+
+    def __str__(self):
+        return self.name

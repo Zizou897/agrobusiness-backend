@@ -42,12 +42,12 @@ class LoginView(CreateAPIView):
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
+        user_essential_serializer = UserEssentialSerializer(user)
 
         data = {
             "refresh": str(refresh),
             "access": access_token,
-            "user": user.id,
-            "profil_type": profil_type,
+            "user": user_essential_serializer.data,
         }
         return Response(data, status=status.HTTP_200_OK)
 

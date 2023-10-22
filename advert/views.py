@@ -11,14 +11,29 @@ from advert.serializers import (
     ProductOrderSerializer,
     UpdateProductOrderStatusSerializer,
     ProductCommentSerializer,
+    SectionProduitsSerializer,
+    SectionProduitsCreateSerializer
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, UpdateAPIView
 from core.exceptions import NotAuthorized
-from .models import ProductFavorite, ProductOrder, Product
+from .models import ProductFavorite, ProductOrder, Product, SectionProduits
 from django_filters import rest_framework as filters
+
+
+class SectionProduitsView(ModelViewSet):
+    queryset = SectionProduits.objects.all()
+    serializer_class = SectionProduitsSerializer
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return SectionProduitsCreateSerializer
+        return SectionProduitsSerializer
+
+
+
 
 
 class ProductViewSet(ModelViewSet):
