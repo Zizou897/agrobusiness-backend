@@ -135,7 +135,7 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
-    "http://31.220.72.160",
+    "http://localhost:4200",
     "https://services.devslabel.com",
 ]
 
