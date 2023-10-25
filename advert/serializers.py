@@ -6,17 +6,32 @@ from advert.models import (
     ProductImage,
     ProductOrder,
     SellerDelivery,
-    SectionProduits
+    ProductsSection,
+    ProductCart
 )
 from authentication.serializers import UserEssentialSerializer
 from settings.serializers import MeasureSerializer, ProductCategorySerializer
 
+
+class ProductCartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductCart
+        fields = "__all__"
+
+
+class ProductCartCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductCart
+        fields = [
+            "product",
+        ]
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
             "name",
+            "short_description",
             "description",
             "price",
             "quantity",
@@ -25,7 +40,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             "measure",
             "stock_status",
             "entreprise",
-            "seller"
+            # "seller"
         ]
 
 
@@ -64,11 +79,11 @@ class ProductEssentialSerializer(serializers.ModelSerializer):
         ]
 
 
-class SectionProduitsSerializer(serializers.ModelSerializer):
+class ProductsSectionSerializer(serializers.ModelSerializer):
     products = ProductEssentialSerializer(many=True, read_only=True)
 
     class Meta:
-        model = SectionProduits
+        model = ProductsSection
         fields = [
             "id",
             "name",
@@ -79,9 +94,9 @@ class SectionProduitsSerializer(serializers.ModelSerializer):
         ]
 
 
-class SectionProduitsCreateSerializer(serializers.ModelSerializer):
+class ProductsSectionCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SectionProduits
+        model = ProductsSection
         fields = [
             "name",
             "description",
@@ -111,7 +126,7 @@ class AddProductImageSerializer(serializers.ModelSerializer):
 class AddProductCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductComment
-        fields = ["comment"]
+        fields = ["comment", "rating"]
 
 
 class ProductCommentSerializer(serializers.ModelSerializer):

@@ -1,11 +1,15 @@
 import uuid
 from cities_light.models import Country
 from django.db import models
+from advert.exceptions import OrderQuantityCannotBeGreaterThanProductQuantityError
 from authentication.models import User
 from core.base_enum import ExtendedEnum
 from core.constants import PRODUCT_IMAGE_PATH
 from core.validators import validate_image_extension, validate_image_size
 from settings.models import PaymentMethod
+from django.db.models import Sum
+from ckeditor.fields import RichTextField
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class ProductType(ExtendedEnum):
@@ -28,11 +32,9 @@ class StockStatus(ExtendedEnum):
 
 class OrderStatus(ExtendedEnum):
     RECEIVED = "RECEIVED"
-    PAYMENT_PENDING = "PAYMENT_PENDING"
-    OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
+    PENDING = "PENDING"
     DELIVERED = "DELIVERED"
     CANCELED = "CANCELED"
-    RETURNED = "RETURNED"
 
 
 class SellerDelivery(models.Model):
@@ -86,7 +88,14 @@ class Product(models.Model):
         blank=True,
     )
     name = models.CharField(max_length=255, verbose_name="Product name")
-    description = models.TextField(verbose_name="Product description")
+    short_description = models.TextField(
+        verbose_name="Product short description", blank=True, null=True
+    )
+    description = RichTextField(
+        verbose_name="Product description",
+        blank=True,
+        null=True,
+    )
     price = models.FloatField(verbose_name="Product price")
     quantity = models.PositiveIntegerField(verbose_name="Product quantity", default=0)
     category = models.ForeignKey(
@@ -110,7 +119,7 @@ class Product(models.Model):
         choices=STATUS,
         max_length=255,
         verbose_name="Product status",
-        default=ProductStatus.WAIT.value,
+        default=ProductStatus.UNPUBLISH.value,
     )
     stock_status = models.CharField(
         choices=STOCK_STATUS,
@@ -143,14 +152,37 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def is_ordered_by(self, user: User):
+        return ProductOrder.objects.filter(product=self, user=user).exists()
+
+    def is_product_seller(self, user: User):
+        return self.seller == user
+
     def add_to_favorite(self, user: User):
         ProductFavorite.objects.create(product=self, user=user)
+
+    def add_to_cart(self, user: User):
+        ProductCart.objects.create(product=self, user=user)
+
+    def remove_from_cart(self, user: User):
+        ProductCart.objects.filter(product=self, user=user).delete()
+
+    def get_all_cart(self, user: User):
+        return ProductCart.objects.filter(product=self, user=user)
 
     def remove_from_favorite(self, user: User):
         ProductFavorite.objects.filter(product=self, user=user).delete()
 
-    def add_comment(self, user: User, comment: str):
-        ProductComment.objects.create(product=self, user=user, comment=comment)
+    def add_comment(self, **kwargs):
+        user = kwargs.get("user")
+        comment = kwargs.get("comment")
+        rating = kwargs.get("rating")
+        ProductComment.objects.create(
+            product=self, user=user, comment=comment, rating=rating
+        )
+
+    def can_add_comment(self, user: User):
+        return ProductOrder.objects.filter(product=self, user=user).exists()
 
     def get_all_comments(self):
         return ProductComment.objects.filter(product=self)
@@ -197,6 +229,11 @@ class ProductImage(models.Model):
 
 class ProductComment(models.Model):
     comment = models.TextField(verbose_name="Product comment")
+    rating = models.PositiveIntegerField(
+        verbose_name="Product comment rating",
+        default=0,
+        validators=[MaxValueValidator(5), MinValueValidator(0)],
+    )
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
@@ -240,24 +277,53 @@ class ProductFavorite(models.Model):
         verbose_name_plural = "Product favorites"
 
 
+class ProductOrderItem(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name="Product order item product",
+        related_name="product_order_item_product",
+    )
+    quantity = models.PositiveIntegerField(verbose_name="Product order item quantity")
+    unit_price = models.FloatField(verbose_name="Product order item unit price")
+    total_price = models.FloatField(verbose_name="Product order item total price")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Product order item created at"
+    )
+
+    class Meta:
+        verbose_name = "Product order item"
+        verbose_name_plural = "Product order items"
+
+
+class ProductCart(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name="Product cart product",
+        related_name="product_cart_product",
+    )
+    user = models.ForeignKey(
+        "authentication.User",
+        on_delete=models.CASCADE,
+        verbose_name="Product cart user",
+        related_name="product_cart_user",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Product cart created at"
+    )
+
+
 class ProductOrder(models.Model):
     STATUS = (
+        (OrderStatus.PENDING.value, "En attente"),
         (OrderStatus.RECEIVED.value, "Reçu"),
-        (OrderStatus.PAYMENT_PENDING.value, "En attente de paiement"),
-        (OrderStatus.OUT_FOR_DELIVERY.value, "En cours de livraison"),
         (OrderStatus.DELIVERED.value, "Livré"),
         (OrderStatus.CANCELED.value, "Annulé"),
-        (OrderStatus.RETURNED.value, "Retourné"),
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(
         max_length=255, verbose_name="Product order reference", unique=True
-    )
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        verbose_name="Product order product",
-        related_name="product_order_product",
     )
     user = models.ForeignKey(
         "authentication.User",
@@ -265,8 +331,11 @@ class ProductOrder(models.Model):
         verbose_name="Product order user",
         related_name="product_order_user",
     )
-    quantity = models.PositiveIntegerField(verbose_name="Product order quantity")
-    unit_price = models.FloatField(verbose_name="Product order unit price")
+    product_items = models.ManyToManyField(
+        ProductOrderItem,
+        verbose_name="Product order product items",
+        related_name="product_order_product_items",
+    )
     total_price = models.FloatField(verbose_name="Product order price")
     payment_method = models.ForeignKey(
         "settings.PaymentMethod",
@@ -284,7 +353,7 @@ class ProductOrder(models.Model):
         choices=STATUS,
         max_length=255,
         verbose_name="Product order status",
-        default=OrderStatus.RECEIVED.value,
+        default=OrderStatus.PENDING.value,
     )
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Product order created at"
@@ -296,21 +365,36 @@ class ProductOrder(models.Model):
     def save(self, *args, **kwargs):
         if not self.reference:
             self.reference = f"CMD-{self.created_at.strftime('%Y%m%d%H%M%S')}"
+
+        for item in self.product_items.all():
+            if item.quantity > item.product.quantity:
+                raise OrderQuantityCannotBeGreaterThanProductQuantityError()
         super(ProductOrder, self).save(*args, **kwargs)
+
+    def get_order_items(self):
+        return ProductOrderItem.objects.filter(product_order=self)
+
+    def get_order_items_count(self):
+        return ProductOrderItem.objects.filter(product_order=self).count()
+
+    def get_order_items_total_price(self):
+        return ProductOrderItem.objects.filter(product_order=self).aggregate(
+            Sum("total_price")
+        )["total_price__sum"]
 
     class Meta:
         verbose_name = "Product order"
         verbose_name_plural = "Product orders"
 
 
-class SectionProduits(models.Model):
+class ProductsSection(models.Model):
     PRODUCT_TYPE = (
         (ProductType.ALL_PRODUCTS.value, "Tous les produits"),
         (ProductType.NEW_ADDED_PRODUCTS.value, "Nouveaux produits ajoutés"),
-        (ProductType.MOST_SELLING_PRODUCTS.value, "Produits les plus vendus"),
+        # (ProductType.MOST_SELLING_PRODUCTS.value, "Produits les plus vendus"),
     )
-    name = models.CharField(max_length=255, verbose_name='Nom de la section')
-    description = models.TextField(verbose_name='Description de la section')
+    name = models.CharField(max_length=255, verbose_name="Nom de la section")
+    description = models.TextField(verbose_name="Description de la section")
     categories = models.ManyToManyField(
         "settings.ProductCategory",
         verbose_name="Product product category",

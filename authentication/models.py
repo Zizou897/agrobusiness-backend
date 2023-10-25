@@ -65,3 +65,25 @@ class HOTPDevice(models.Model):
         help_text="The counter value of the latest verified token. The next token must be at a higher counter value.",
         blank=True,
     )
+
+
+class BroadcastGroup(models.Model):
+    PROFIL_TYPE = (
+        (ProfilTypeEnums.USER.value, "Utilisateur"),
+        (ProfilTypeEnums.AGRIPRENEUR.value, "Agripreneur"),
+        (ProfilTypeEnums.MERCHANT.value, "Commerçant"),
+    )
+    name = models.CharField(max_length=255)
+    type_user = models.CharField(
+        choices=PROFIL_TYPE,
+        max_length=255,
+        verbose_name="Profil type",
+        default=ProfilTypeEnums.USER.value,
+    )
+    is_entreprise = models.BooleanField(default=False)
+    
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

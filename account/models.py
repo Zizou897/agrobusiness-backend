@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
 from cities_light.models import Country
-
 from core.constants import ENTERPRISE_IMAGE_PATH
 from core.validators import validate_image_extension, validate_image_size
 
@@ -93,6 +92,9 @@ class UserSubscription(models.Model):
 class Subscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, verbose_name="Subscription name")
+    language_key = models.CharField(
+        max_length=255, verbose_name="Subscription language key", null=True, blank=True
+    )
     price = models.FloatField(verbose_name="Subscription price")
     duration = models.IntegerField(verbose_name="Subscription duration in days")
     offers = models.ManyToManyField("account.Offer", verbose_name="Subscription offers")
@@ -104,7 +106,16 @@ class Subscription(models.Model):
 class Offer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, verbose_name="Offer name")
+    name_language_key = models.CharField(
+        max_length=255, verbose_name="Offer name language key", null=True, blank=True
+    )
     description = models.TextField(verbose_name="Offer description")
+    description_language_key = models.CharField(
+        max_length=255,
+        verbose_name="Offer description language key",
+        null=True,
+        blank=True,
+    )
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Offer created at"
     )
