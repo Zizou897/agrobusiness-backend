@@ -129,18 +129,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://localhost:4100",
-    "http://31.220.72.160",
+    "http://localhost:4200",
     "https://services.devslabel.com",
-    "https://webadmin.devslabel.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://31.220.72.160",
     "https://services.devslabel.com",
-    "https://webadmin.devslabel.com",
 ]
 
 CORS_ALLOW_METHODS = (

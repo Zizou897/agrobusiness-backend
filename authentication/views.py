@@ -69,9 +69,8 @@ class RegisterView(CreateAPIView):
         phone_number = serializer.validated_data["phone_number"]
         country = serializer.validated_data["country"]
 
-        user_case = RegisterUserUseCase()
-
-        user = user_case.execute(
+        use_case = RegisterUserUseCase()
+        use_case.execute(
             username=username,
             email=email,
             password=password,
@@ -81,8 +80,7 @@ class RegisterView(CreateAPIView):
             phone_number=phone_number,
             country=country,
         )
-
-        return Response(data={"user_id": user.id}, status=201)
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class EmailConfirmationView(CreateAPIView):
@@ -95,9 +93,9 @@ class EmailConfirmationView(CreateAPIView):
         code = serializer.validated_data["code"]
         email = serializer.validated_data["email"]
 
-        user_id = EmailConfirmationUseCase.execute(code=code, email=email)
+        EmailConfirmationUseCase.execute(code=code, email=email)
 
-        return Response(status=200, data=user_id)
+        return Response(status=status.HTTP_200_OK)
 
 
 class ResendOTPCodeView(CreateAPIView):

@@ -1,7 +1,8 @@
 from authentication.models import User
-from notification.signals import reset_password_request
+# from notification.signals import reset_password_request
 from notification.tasks import send_mail_reset_password
 from notification.use_cases.generate_otp_code_use_case import GenererCodeOTPUsecase
+from notification.use_cases.send_reset_password_email_use_case import SendResetPasswordEmailUseCase
 
 
 class ResetPasswordRequestUseCase:

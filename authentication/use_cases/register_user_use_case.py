@@ -6,6 +6,7 @@ from authentication.exceptions import (
 from authentication.models import User
 from notification.use_cases.generate_otp_code_use_case import GenererCodeOTPUsecase
 from notification.tasks import send_mail_verification
+from notification.use_cases.send_verification_email_use_case import SendVerificationEmailUseCase
 
 
 class RegisterUserUseCase:

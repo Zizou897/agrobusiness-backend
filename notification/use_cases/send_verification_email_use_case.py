@@ -1,6 +1,7 @@
 from rest_framework.generics import get_object_or_404
 from templated_mail.mail import BaseEmailMessage
 from authentication.models import User
+from notification.send_notification import SendNotification
 
 
 class SendVerificationEmailUseCase:
@@ -12,12 +13,11 @@ class SendVerificationEmailUseCase:
         username = user.username
 
         context = {
-            'NOM_CLIENT': recepient_full_name,
-            'OTP_CODE': code,
-            'USERNAME': username,
+            "NOM_CLIENT": recepient_full_name,
+            "OTP_CODE": code,
+            "USERNAME": username,
         }
-        html_message = BaseEmailMessage(
-            template_name='email_verification.html',
-            context=context
+
+        SendNotification.send_mail(
+            context=context, template_name="email_verification", to=[recepient_email]
         )
-        return html_message.send(to=[recepient_email])
