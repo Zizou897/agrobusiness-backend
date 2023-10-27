@@ -11,7 +11,7 @@ class AdvertAdmin(admin.ModelAdmin):
 
 @admin.register(SellerDelivery)
 class SellerDeliveryAdmin(admin.ModelAdmin):
-    list_display = ("id", "product", "delivery_method", "delivery_time", "created_at")
+    list_display = ("id", "delivery_method", "delivery_time", "created_at")
     ordering = ("-created_at",)
 
 

@@ -40,12 +40,6 @@ class OrderStatus(ExtendedEnum):
 
 class SellerDelivery(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    product = models.ForeignKey(
-        "Product",
-        on_delete=models.CASCADE,
-        verbose_name="Seller delivery product",
-        related_name="seller_delivery_product",
-    )
     delivery_method = models.ForeignKey(
         "settings.DeliveryMethod",
         on_delete=models.CASCADE,

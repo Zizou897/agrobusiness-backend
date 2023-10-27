@@ -16,7 +16,7 @@ from advert.exceptions import (
     ProductOwnerCannotCommentError,
     UserMustHasDeliveryAddressError,
 )
-from advert.filter import ProductFilter
+from advert.filter import ProductFilter, SellerDeliveryFilter
 from advert.serializers import (
     AddProductCommentSerializer,
     AddProductImageSerializer,
@@ -26,6 +26,8 @@ from advert.serializers import (
     ProductImageSerializer,
     ProductOrderCreateSerializer,
     ProductOrderSerializer,
+    SellerDeliveryCreateSerializer,
+    SellerDeliveryDetailSerializer,
     UpdateProductOrderStatusSerializer,
     ProductCommentSerializer,
     ProductsSectionSerializer,
@@ -33,8 +35,9 @@ from advert.serializers import (
     ProductEssentialSerializer,
     UpdateProductQuantitySerializer,
 )
+from authentication.models import User
 from core.exceptions import NotAuthorized
-from core.permissions import AllowOnlyVendor, AllowOnlyVendorOnDetroy
+from core.permissions import AllowOnlyVendor, AllowOnlyVendorOnDetroy, AllowUserOnlyOnGet
 from .models import (
     ProductFavorite,
     ProductOrder,
@@ -395,3 +398,27 @@ class WeeklySalesAPIView(APIView):
                 sales_by_day.append({"amount": 0, "date": str(date)})
 
         return Response(sales_by_day)
+
+
+class SellerDeliveryView(ModelViewSet):
+    queryset = SellerDelivery.objects.all()
+    serializer_class = SellerDeliveryCreateSerializer
+    permission_classes = [IsAuthenticated, AllowUserOnlyOnGet]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = SellerDeliveryFilter
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return SellerDeliveryCreateSerializer
+        return SellerDeliveryDetailSerializer
+
+    def get_queryset(self):
+        user: User = self.request.user
+        seller_delivery = SellerDelivery.objects.all()
+        if user.is_vendor():
+            return SellerDelivery.objects.filter(user=user)
+        return seller_delivery
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        

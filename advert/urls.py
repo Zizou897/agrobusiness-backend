@@ -7,7 +7,8 @@ from .views import (
     ProductsSectionView,
     VendorProductListView,
     SellerStatisticsAPIView,
-    WeeklySalesAPIView
+    WeeklySalesAPIView,
+    SellerDeliveryView
 )
 from django.urls import path
 
@@ -15,6 +16,7 @@ router = DefaultRouter()
 
 router.register(r"products", ProductViewSet, basename="products")
 router.register(r"sections", ProductsSectionView, basename="sections")
+router.register(r"vendor-delivery", SellerDeliveryView, basename="delivery")
 
 urlpatterns = [
     path("vendor/products/", VendorProductListView.as_view()),

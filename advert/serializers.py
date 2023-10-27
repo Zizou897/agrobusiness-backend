@@ -43,7 +43,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             "measure",
             "stock_status",
             "entreprise",
-            # "seller"
         ]
 
 
@@ -183,7 +182,7 @@ class UpdateProductOrderStatusSerializer(serializers.ModelSerializer):
 class SellerDeliveryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerDelivery
-        fields = ["product", "delivery_method", "delivery_time"]
+        fields = ["delivery_method", "delivery_time"]
 
 
 class SellerDeliveryDetailSerializer(serializers.ModelSerializer):
@@ -193,7 +192,6 @@ class SellerDeliveryDetailSerializer(serializers.ModelSerializer):
         model = SellerDelivery
         fields = [
             "id",
-            "product",
             "delivery_method",
             "delivery_time",
             "created_at",
