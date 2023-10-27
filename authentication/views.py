@@ -1,7 +1,7 @@
 from django.shortcuts import render
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from authentication.models import User
+from authentication.models import ProfilTypeEnums, User, UserDeliveryAddress
 from authentication.serializers import (
     ChangePasswordSerializer,
     EmailConfirmationSerializer,
@@ -10,8 +10,12 @@ from authentication.serializers import (
     ResendOTPCodeSerializer,
     ResetPasswordRequestSerializer,
     ResetPasswordSerializer,
+    UserDeliveryAddressCreateSerializer,
+    UserDeliveryAddressEssentialSerializer,
     UserEssentialSerializer,
+    VendorSerializer,
 )
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from authentication.use_cases.change_password_use_case import ChangePasswordUsecase
@@ -24,6 +28,7 @@ from authentication.use_cases.reset_password_request_use_case import (
     ResetPasswordRequestUseCase,
 )
 from authentication.use_cases.reset_password_use_case import ResetPasswordUsecase
+from core.exceptions import NotAuthorized
 from notification.signals import user_registered
 from rest_framework.permissions import IsAuthenticated
 
@@ -38,7 +43,6 @@ class LoginView(CreateAPIView):
         password = serializer.validated_data["password"]
 
         user = LoginUseCase().execute(username=username, password=password)
-        profil_type = user.profil_type
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
@@ -157,3 +161,47 @@ class ChangePasswordView(CreateAPIView):
             user=user, old_password=old_password, new_password=new_password
         )
         return Response(status=status.HTTP_200_OK)
+
+
+class VendorsListView(ListAPIView):
+    serializer_class = VendorSerializer
+
+    def get(self, request, *args, **kwargs):
+        users = User.objects.filter(
+            profil_type__in=[
+                ProfilTypeEnums.AGRIPRENEUR.value,
+                ProfilTypeEnums.MERCHANT.value,
+            ]
+        )
+        serializer = self.get_serializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserDeliveryAddressView(ModelViewSet):
+    serializer_class = UserDeliveryAddressEssentialSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = UserDeliveryAddress.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return UserDeliveryAddressCreateSerializer
+        return UserDeliveryAddressEssentialSerializer
+
+    def get_queryset(self):
+        return UserDeliveryAddress.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        address = serializer.validated_data["address"]
+        city = serializer.validated_data["city"]
+        is_main = serializer.validated_data["is_main"]
+
+        user: User = self.request.user
+        user.add_delivery_address(address=address, city=city, is_main=is_main)
+
+    def perform_destroy(self, instance):
+        # Verify if user is owner of the address
+        if instance.user != self.request.user:
+            raise NotAuthorized()
+
+        # perform delete
+        super().perform_destroy(instance)

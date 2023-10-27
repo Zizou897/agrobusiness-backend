@@ -1,10 +1,41 @@
 from fcm_django.models import FCMDevice
 from rest_framework import serializers
-from .models import User
+
+from account.account_serializer import EntrepriseSerializer
+from .models import ProfilTypeEnums, User, UserDeliveryAddress
 from cities_light.models import Country
 
 
+class VendorSerializer(serializers.ModelSerializer):
+    entreprise = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "entreprise",
+        ]
+
+    def get_entreprise(self, obj):
+        entreprise = obj.entreprise_user.first()
+        if entreprise:
+            return {
+                'id': entreprise.id,
+                'name': entreprise.name,
+                'country': entreprise.country.name,
+                'address': entreprise.address,
+                'phone_number': entreprise.phone_number,
+                'logo': entreprise.logo.url if entreprise.logo else None,
+                'web_site': entreprise.web_site,
+                'description': entreprise.description
+            }
+        return None
+
+
 class UserEssentialSerializer(serializers.ModelSerializer):
+    entreprise = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
@@ -13,8 +44,24 @@ class UserEssentialSerializer(serializers.ModelSerializer):
             "username",
             "first_name",
             "last_name",
-            "profil_type",
+            "phone_number",
+            "entreprise",
         ]
+
+    def get_entreprise(self, obj):
+        entreprise = obj.entreprise_user.first()
+        if entreprise:
+            return {
+                'id': entreprise.id,
+                'name': entreprise.name,
+                'country': entreprise.country.name,
+                'address': entreprise.address,
+                'phone_number': entreprise.phone_number,
+                'logo': entreprise.logo.url if entreprise.logo else None,
+                'web_site': entreprise.web_site,
+                'description': entreprise.description
+            }
+        return None
 
 
 class LoginSerializer(serializers.Serializer):
@@ -137,3 +184,24 @@ class FCMDeviceSerializer(serializers.ModelSerializer):
             "type": instance.type,
             "user": instance.user.id,
         }
+
+
+class UserDeliveryAddressEssentialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDeliveryAddress
+        fields = [
+            "address",
+            "city",
+            "country",
+            "is_main",
+        ]
+
+
+class UserDeliveryAddressCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDeliveryAddress
+        fields = [
+            "address",
+            "city",
+            "is_main",
+        ]

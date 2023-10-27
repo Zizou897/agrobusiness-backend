@@ -2,6 +2,7 @@ import uuid
 from cities_light.models import Country
 from django.db import models
 from advert.exceptions import OrderQuantityCannotBeGreaterThanProductQuantityError
+from advert.utils import calculDeliveryDateByNumberOfDays
 from authentication.models import User
 from core.base_enum import ExtendedEnum
 from core.constants import PRODUCT_IMAGE_PATH
@@ -161,15 +162,6 @@ class Product(models.Model):
     def add_to_favorite(self, user: User):
         ProductFavorite.objects.create(product=self, user=user)
 
-    def add_to_cart(self, user: User):
-        ProductCart.objects.create(product=self, user=user)
-
-    def remove_from_cart(self, user: User):
-        ProductCart.objects.filter(product=self, user=user).delete()
-
-    def get_all_cart(self, user: User):
-        return ProductCart.objects.filter(product=self, user=user)
-
     def remove_from_favorite(self, user: User):
         ProductFavorite.objects.filter(product=self, user=user).delete()
 
@@ -190,21 +182,31 @@ class Product(models.Model):
     def get_images(self):
         return ProductImage.objects.filter(product=self)
 
+    def update_quantity(self, quantity):
+        self.quantity = quantity
+        self.save(update_fields=["quantity"])
+
     def make_order(self, **kwargs):
-        user = kwargs.get("user")
+        user: User = kwargs.get("user")
         quantity = kwargs.get("quantity")
         seller_delivery: SellerDelivery = kwargs.get("seller_delivery")
         payment_method: PaymentMethod = kwargs.get("payment_method")
         order = ProductOrder.objects.create(
             product=self,
             user=user,
+            seller=seller_delivery.user,
+            delivery_address=user.get_main_delivery_address(),
             quantity=quantity,
             unit_price=self.price,
             total_price=self.price * quantity,
             payment_method=payment_method,
             delivery_method=seller_delivery.delivery_method,
-            delivery_time=seller_delivery.delivery_time,
+            delivery_date=calculDeliveryDateByNumberOfDays(
+                seller_delivery.delivery_time
+            ),
         )
+        # Update product quantity
+        self.update_quantity(self.quantity - quantity)
         return order
 
 
@@ -277,43 +279,6 @@ class ProductFavorite(models.Model):
         verbose_name_plural = "Product favorites"
 
 
-class ProductOrderItem(models.Model):
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        verbose_name="Product order item product",
-        related_name="product_order_item_product",
-    )
-    quantity = models.PositiveIntegerField(verbose_name="Product order item quantity")
-    unit_price = models.FloatField(verbose_name="Product order item unit price")
-    total_price = models.FloatField(verbose_name="Product order item total price")
-    created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Product order item created at"
-    )
-
-    class Meta:
-        verbose_name = "Product order item"
-        verbose_name_plural = "Product order items"
-
-
-class ProductCart(models.Model):
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        verbose_name="Product cart product",
-        related_name="product_cart_product",
-    )
-    user = models.ForeignKey(
-        "authentication.User",
-        on_delete=models.CASCADE,
-        verbose_name="Product cart user",
-        related_name="product_cart_user",
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Product cart created at"
-    )
-
-
 class ProductOrder(models.Model):
     STATUS = (
         (OrderStatus.PENDING.value, "En attente"),
@@ -325,18 +290,37 @@ class ProductOrder(models.Model):
     reference = models.CharField(
         max_length=255, verbose_name="Product order reference", unique=True
     )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name="Product order product",
+        related_name="product_order_product",
+        null=True,
+        blank=True,
+    )
     user = models.ForeignKey(
         "authentication.User",
         on_delete=models.CASCADE,
         verbose_name="Product order user",
         related_name="product_order_user",
     )
-    product_items = models.ManyToManyField(
-        ProductOrderItem,
-        verbose_name="Product order product items",
-        related_name="product_order_product_items",
+    seller = models.ForeignKey(
+        "authentication.User",
+        on_delete=models.CASCADE,
+        verbose_name="Product order seller",
+        related_name="product_order_seller",
+        null=True,
+        blank=True,
     )
-    total_price = models.FloatField(verbose_name="Product order price")
+    quantity = models.PositiveIntegerField(
+        verbose_name="Product order item quantity", default=0
+    )
+    unit_price = models.FloatField(
+        verbose_name="Product order item unit price", default=0
+    )
+    total_price = models.FloatField(
+        verbose_name="Product order item total price", default=0
+    )
     payment_method = models.ForeignKey(
         "settings.PaymentMethod",
         on_delete=models.CASCADE,
@@ -344,10 +328,22 @@ class ProductOrder(models.Model):
         related_name="product_order_payment_method",
     )
     delivery_method = models.ForeignKey(
-        "SellerDelivery",
+        "settings.DeliveryMethod",
         on_delete=models.CASCADE,
         verbose_name="Product order delivery method",
         related_name="product_order_delivery_method",
+    )
+    delivery_date = models.DateField(
+        verbose_name="Product order delivery date", null=True, blank=True
+    )
+
+    delivery_address = models.ForeignKey(
+        "authentication.UserDeliveryAddress",
+        on_delete=models.CASCADE,
+        verbose_name="Product order delivery address",
+        related_name="product_order_delivery_address",
+        blank=True,
+        null=True,
     )
     status = models.CharField(
         choices=STATUS,
@@ -364,23 +360,16 @@ class ProductOrder(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.reference:
-            self.reference = f"CMD-{self.created_at.strftime('%Y%m%d%H%M%S')}"
+            self.reference = f"PO-{uuid.uuid4().hex[:6].upper()}"
 
-        for item in self.product_items.all():
-            if item.quantity > item.product.quantity:
-                raise OrderQuantityCannotBeGreaterThanProductQuantityError()
+        # Check if the quantity ordered is greater than the quantity of the product
+        if self.quantity > self.product.quantity:
+            raise OrderQuantityCannotBeGreaterThanProductQuantityError()
+
+        # Calculate the total price of the order
+        self.total_price = self.unit_price * self.quantity
+
         super(ProductOrder, self).save(*args, **kwargs)
-
-    def get_order_items(self):
-        return ProductOrderItem.objects.filter(product_order=self)
-
-    def get_order_items_count(self):
-        return ProductOrderItem.objects.filter(product_order=self).count()
-
-    def get_order_items_total_price(self):
-        return ProductOrderItem.objects.filter(product_order=self).aggregate(
-            Sum("total_price")
-        )["total_price__sum"]
 
     class Meta:
         verbose_name = "Product order"

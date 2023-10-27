@@ -10,10 +10,13 @@ from authentication.views import (
     ResendOTPCodeView,
     ResetPasswordRequestView,
     ResetPasswordView,
+    VendorsListView,
+    UserDeliveryAddressView
 )
 
-
 router = DefaultRouter()
+
+router.register(r"delivery-addresses", UserDeliveryAddressView, basename="delivery-addresses")
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
@@ -28,6 +31,7 @@ urlpatterns = [
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
     path("resend-otp-code/", ResendOTPCodeView.as_view(), name="resend-otp-code"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("vendors/", VendorsListView.as_view(), name="vendors-list"),
 ]
 
 urlpatterns += router.urls

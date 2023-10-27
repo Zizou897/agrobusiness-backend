@@ -20,6 +20,9 @@ class Entreprise(models.Model):
         verbose_name="Pays de l'entreprise",
         related_name="entreprise_country",
     )
+    address = models.CharField(
+        max_length=255, verbose_name="Adresse de l'entreprise", blank=True, null=True
+    )
     phone_number = models.CharField(
         max_length=255, verbose_name="Téléphone de l'entreprise"
     )

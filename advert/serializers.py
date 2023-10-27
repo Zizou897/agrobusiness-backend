@@ -7,24 +7,27 @@ from advert.models import (
     ProductOrder,
     SellerDelivery,
     ProductsSection,
-    ProductCart
 )
-from authentication.serializers import UserEssentialSerializer
-from settings.serializers import MeasureSerializer, ProductCategorySerializer
+from authentication.serializers import (
+    UserDeliveryAddressEssentialSerializer,
+    UserEssentialSerializer,
+)
+from settings.models import DeliveryMethod
+from settings.serializers import (
+    DeliveryMethodSerializer,
+    MeasureSerializer,
+    PaymentMethodSerializer,
+    ProductCategorySerializer,
+)
 
 
-class ProductCartSerializer(serializers.ModelSerializer):
+class UpdateProductQuantitySerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductCart
-        fields = "__all__"
-
-
-class ProductCartCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductCart
+        model = Product
         fields = [
-            "product",
+            "quantity",
         ]
+
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -156,24 +159,17 @@ class ProductFavoriteSerializer(serializers.ModelSerializer):
 
 class ProductOrderCreateSerializer(serializers.ModelSerializer):
     seller_delivery = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=SellerDelivery.objects.all()
+        queryset=SellerDelivery.objects.all(),
+        write_only=True,
     )
 
     class Meta:
         model = ProductOrder
         fields = [
-            "quantity",
-            "unit_price",
             "payment_method",
             "seller_delivery",
-            "status",
+            "quantity",
         ]
-
-
-class ProductOrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductOrder
-        fields = "__all__"
 
 
 class UpdateProductOrderStatusSerializer(serializers.ModelSerializer):
@@ -190,7 +186,39 @@ class SellerDeliveryCreateSerializer(serializers.ModelSerializer):
         fields = ["product", "delivery_method", "delivery_time"]
 
 
-class SellerDeliverySerializer(serializers.ModelSerializer):
+class SellerDeliveryDetailSerializer(serializers.ModelSerializer):
+    delivery_method = DeliveryMethodSerializer()
+
     class Meta:
         model = SellerDelivery
+        fields = [
+            "id",
+            "product",
+            "delivery_method",
+            "delivery_time",
+            "created_at",
+        ]
+
+
+class SellerDeliveryEssentialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SellerDelivery
+        fields = [
+            "id",
+            "delivery_method",
+            "delivery_time",
+            "created_at",
+        ]
+
+
+class ProductOrderSerializer(serializers.ModelSerializer):
+    product = ProductEssentialSerializer()
+    user = UserEssentialSerializer()
+    delivery_method = DeliveryMethodSerializer()
+    payment_method = PaymentMethodSerializer()
+    seller = UserEssentialSerializer()
+    delivery_address = UserDeliveryAddressEssentialSerializer()
+
+    class Meta:
+        model = ProductOrder
         fields = "__all__"

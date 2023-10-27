@@ -1,8 +1,20 @@
+from datetime import datetime, timedelta
+
+from django.db.models import Avg, Count, Sum
+from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema
+from rest_framework.decorators import action
+from rest_framework.generics import ListAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+
 from advert.exceptions import (
     OnlyOrdererCanCommentError,
-    OnlyOwnerOfCartCanDeleteError,
     ProductOwnerCannotCommentError,
+    UserMustHasDeliveryAddressError,
 )
 from advert.filter import ProductFilter
 from advert.serializers import (
@@ -18,24 +30,20 @@ from advert.serializers import (
     ProductCommentSerializer,
     ProductsSectionSerializer,
     ProductsSectionCreateSerializer,
+    ProductEssentialSerializer,
+    UpdateProductQuantitySerializer,
 )
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, UpdateAPIView
-from authentication.models import ProfilTypeEnums
 from core.exceptions import NotAuthorized
+from core.permissions import AllowOnlyVendor, AllowOnlyVendorOnDetroy
 from .models import (
     ProductFavorite,
     ProductOrder,
     Product,
     ProductType,
     ProductsSection,
-    ProductCart,
+    SellerDelivery, OrderStatus,
 )
-from django_filters import rest_framework as filters
-from django.db.models import Avg
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .use_cases.update_product_order_status import UpdateProductOrderStatusUseCase
 
 
 class ProductsSectionView(ModelViewSet):
@@ -66,14 +74,30 @@ class ProductsSectionView(ModelViewSet):
 
         return sections
 
+    def perform_destroy(self, instance):
+        return super().perform_destroy(instance)
 
+
+@extend_schema(
+    responses={
+        201: "",
+    },
+    request=ProductCreateSerializer,
+)
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
-    serializer_class = ProductCreateSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = ProductEssentialSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, AllowOnlyVendorOnDetroy]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProductFilter
 
+    @extend_schema(
+        responses={
+            201: "",
+        },
+        request=ProductCreateSerializer,
+        summary="Create product",
+    )
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
 
@@ -81,27 +105,46 @@ class ProductViewSet(ModelViewSet):
         products = Product.objects.annotate(
             average_rating=Avg("product_comment_product__rating")
         )
-        user_profil = self.request.user.profil_type
-
-        if user_profil in [
-            ProfilTypeEnums.AGRIPRENEUR.value,
-            ProfilTypeEnums.MERCHANT.value,
-        ]:
-            return products.filter(seller=self.request.user)
-
         return products
+
+    def perform_destroy(self, instance):
+        if instance.seller != self.request.user:
+            raise NotAuthorized()
+        return super().perform_destroy(instance)
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return ProductCreateSerializer
         return ProductDetailsSerializer
 
-    @action(detail=True, methods=["PUT"], permission_classes=[IsAuthenticated])
+    @extend_schema(
+        responses={
+            201: "",
+        },
+        request=UpdateProductQuantitySerializer,
+        summary="Update product quantity",
+    )
+    @action(
+        detail=True,
+        methods=["PUT"],
+        permission_classes=[IsAuthenticated],
+        url_path="update-quantity",
+    )
     def update_quantity(self, request, pk=None):
-        product = self.get_object()
-        product.update_quantity(request.data.get("quantity"))
+        product: Product = self.get_object()
+        serializer = UpdateProductQuantitySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        quantity = serializer.validated_data["quantity"]
+        product.update_quantity(quantity)
         return Response(status=201)
 
+    @extend_schema(
+        responses={
+            201: "",
+        },
+        request=AddProductImageSerializer,
+        summary="Add product image",
+    )
     @action(
         detail=True,
         methods=["PUT"],
@@ -116,6 +159,13 @@ class ProductViewSet(ModelViewSet):
         product.images.add(product_image)
         return Response(status=201)
 
+    @extend_schema(
+        responses={
+            201: "",
+        },
+        request=AddProductCommentSerializer,
+        summary="Add product comment",
+    )
     @action(
         detail=True,
         methods=["POST"],
@@ -143,6 +193,13 @@ class ProductViewSet(ModelViewSet):
 
         return Response(status=201)
 
+    @extend_schema(
+        summary="Add product to favorite",
+        request={},
+        responses={
+            201: "",
+        },
+    )
     @action(
         detail=True,
         methods=["POST"],
@@ -155,18 +212,13 @@ class ProductViewSet(ModelViewSet):
         product.add_to_favorite(user)
         return Response(status=201)
 
-    @action(
-        detail=True,
-        methods=["POST"],
-        url_path="add-cart",
-        permission_classes=[IsAuthenticated],
+    @extend_schema(
+        responses={
+            201: ProductCommentSerializer,
+        },
+        request="",
+        summary="Get product comments",
     )
-    def add_cart(self, request, pk=None):
-        user = self.request.user
-        product: Product = self.get_object()
-        product.add_to_cart(user)
-        return Response(status=201)
-
     @action(
         detail=True,
         methods=["GET"],
@@ -179,23 +231,48 @@ class ProductViewSet(ModelViewSet):
         serializer = ProductCommentSerializer(comments, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=["GET"])
+    @extend_schema(
+        responses={
+            201: ProductImageSerializer,
+        },
+        request="",
+        summary="Get product images",
+    )
+    @action(detail=True, methods=["GET"], url_path="images")
     def get_images(self, request, pk=None):
         product: Product = self.get_object()
         images = product.get_images()
         serializer = ProductImageSerializer(images, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=["POST"], permission_classes=[IsAuthenticated])
+    @extend_schema(
+        responses={
+            201: "",
+        },
+        request=ProductOrderCreateSerializer,
+        summary="Make order",
+    )
+    @action(
+        detail=True,
+        methods=["POST"],
+        permission_classes=[IsAuthenticated],
+        url_path="make-order",
+    )
     def make_order(self, request, pk=None):
         product: Product = self.get_object()
         user = self.request.user
+
+        if not user.has_delivery_address():
+            raise UserMustHasDeliveryAddressError()
+
         serializer = ProductOrderCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         quantity = serializer.validated_data["quantity"]
-        seller_delivery = serializer.validated_data["seller_delivery"]
+        seller_delivery: SellerDelivery = serializer.validated_data["seller_delivery"]
         payment_method = serializer.validated_data["payment_method"]
-        order = product.make_order(
+
+        product.make_order(
             user=user,
             quantity=quantity,
             seller_delivery=seller_delivery,
@@ -203,6 +280,16 @@ class ProductViewSet(ModelViewSet):
         )
         # Send notification to seller
         return Response(status=201)
+
+
+class VendorProductListView(ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductEssentialSerializer
+    permission_classes = [AllowOnlyVendor]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Product.objects.filter(seller=user)
 
 
 class ProductOrderListView(ListAPIView):
@@ -220,18 +307,28 @@ class ProductOrderUpdateStatusView(UpdateAPIView):
     serializer_class = UpdateProductOrderStatusSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_update(self, serializer):
+        product_order: ProductOrder = self.get_object()
+        status = serializer.validated_data["status"]
+        update_product_order_use_case = UpdateProductOrderStatusUseCase(
+            product_order=product_order, status=status, user=self.request.user
+        )
+        update_product_order_use_case.execute()
+        product_order.status = status
+        product_order.save(update_fields=["status"])
+
     def partial_update(self, request, *args, **kwargs):
-        # Update order status
         order: ProductOrder = self.get_object()
         serializer = UpdateProductOrderStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        # Verify if the user is the seller of the product
-        if order.product.user != request.user:
-            raise NotAuthorized()
-
-        order.status = serializer.validated_data["status"]
+        status = serializer.validated_data["status"]
+        update_product_order_use_case = UpdateProductOrderStatusUseCase(
+            product_order=order, status=status, user=self.request.user
+        )
+        update_product_order_use_case.execute()
+        order.status = status
         order.save(update_fields=["status"])
+        return Response(status=200)
 
 
 class ProductFavoritesListView(ListAPIView):
@@ -244,27 +341,57 @@ class ProductFavoritesListView(ListAPIView):
         return ProductFavorite.objects.filter(user=user)
 
 
-class ProductCartListView(ListAPIView):
-    queryset = ProductFavorite.objects.all()
-    serializer_class = ProductFavoriteSerializer
-    permission_classes = [IsAuthenticated]
+class SellerStatisticsAPIView(APIView):
 
-    def get_queryset(self):
-        user = self.request.user
-        return ProductFavorite.objects.filter(user=user)
+    def get(self, request):
+        user = request.user  # L'utilisateur authentifié
+
+        # Calculez les statistiques pour l'utilisateur connecté
+        seller_statistics = ProductOrder.objects.filter(seller=user).aggregate(
+            total_orders=Count('id'),
+            total_products=Count('product__id', distinct=True),
+            total_products_sold=Sum('quantity')
+        )
+
+        low_stock_products = Product.objects.filter(quantity__lt=10, seller=user).count()
+
+        # Ajoutez la statistique des produits avec un stock faible
+        seller_statistics['low_stock_products'] = low_stock_products
+
+        return Response(seller_statistics)
 
 
-class ProductCartDeleteView(UpdateAPIView):
-    queryset = ProductCart.objects.all()
-    serializer_class = ProductFavoriteSerializer
-    permission_classes = [IsAuthenticated]
+class WeeklySalesAPIView(APIView):
 
-    def partial_update(self, request, *args, **kwargs):
-        # Update order status
-        product_cart: ProductCart = self.get_object()
+    def get(self, request):
+        user = request.user  # L'utilisateur authentifié
 
-        # Verify if the user is the owner of the favorite
-        if product_cart.user != request.user:
-            raise OnlyOwnerOfCartCanDeleteError()
+        # Calculez la date de début et de fin de la semaine courante
+        today = datetime.now().date()
+        start_of_week = today - timedelta(days=today.weekday())
+        end_of_week = start_of_week + timedelta(days=6)
 
-        product_cart.delete()
+        # Générez toutes les dates de la semaine courante
+        date_range = [start_of_week + timedelta(days=i) for i in range(7)]
+
+        # Récupérez les ventes par jour de la semaine courante
+        daily_sales = ProductOrder.objects.filter(
+            seller=user,
+            delivery_date__range=(start_of_week, end_of_week),
+            status=OrderStatus.DELIVERED.value
+        ).values('delivery_date').annotate(
+            total_sales=Sum('total_price')
+        )
+
+        print("daily_sales", daily_sales)
+
+        # Créez une liste d'objets avec les clés "amount" et "date"
+        sales_by_day = [{"amount": entry['total_sales'] or 0, "date": str(entry['delivery_date'])} for entry in
+                        daily_sales]
+
+        # Remplissez les dates sans vente avec un montant de 0
+        for date in date_range:
+            if not any(d['date'] == str(date) for d in sales_by_day):
+                sales_by_day.append({"amount": 0, "date": str(date)})
+
+        return Response(sales_by_day)

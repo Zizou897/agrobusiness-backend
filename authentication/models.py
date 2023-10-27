@@ -46,8 +46,58 @@ class User(AbstractUser):
     )
     phone_number = models.CharField(max_length=255, null=True, blank=True)
 
+    def add_delivery_address(self, **kwargs):
+        address = kwargs.get("address")
+        city = kwargs.get("city")
+        is_main = kwargs.get("is_main")
+
+        if is_main:
+            main_address = UserDeliveryAddress.objects.filter(
+                user=self, is_main=True
+            ).first()
+            if main_address:
+                main_address.is_main = False
+                main_address.save(update_fields=["is_main"])
+
+        return UserDeliveryAddress.objects.create(
+            address=address,
+            city=city,
+            country=self.country,
+            user=self,
+            is_main=is_main,
+        )
+    
+    def has_delivery_address(self):
+        return UserDeliveryAddress.objects.filter(user=self).exists()
+
+    def get_delivery_addresses(self):
+        return UserDeliveryAddress.objects.filter(user=self)
+
+    def get_main_delivery_address(self):
+        return UserDeliveryAddress.objects.filter(user=self, is_main=True).first()
+
+    def is_vendor(self):
+        return self.profil_type in [
+            ProfilTypeEnums.AGRIPRENEUR.value,
+            ProfilTypeEnums.MERCHANT.value,
+        ]
+
     def __str__(self):
         return self.email
+
+
+class UserDeliveryAddress(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="delivery_addresses"
+    )
+    address = models.CharField(max_length=255)
+    city = models.CharField(max_length=255)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    is_main = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.address} - {self.country}"
 
 
 class HOTPDevice(models.Model):
@@ -81,7 +131,6 @@ class BroadcastGroup(models.Model):
         default=ProfilTypeEnums.USER.value,
     )
     is_entreprise = models.BooleanField(default=False)
-    
 
     created_at = models.DateTimeField(auto_now_add=True)
 
