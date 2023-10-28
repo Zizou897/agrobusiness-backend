@@ -16,7 +16,7 @@ from advert.exceptions import (
     ProductOwnerCannotCommentError,
     UserMustHasDeliveryAddressError,
 )
-from advert.filter import ProductFilter, SellerDeliveryFilter
+from advert.filter import OrderFilter, ProductFilter, SellerDeliveryFilter
 from advert.serializers import (
     AddProductCommentSerializer,
     AddProductImageSerializer,
@@ -304,6 +304,8 @@ class ProductOrderListView(ListAPIView):
     queryset = ProductOrder.objects.all()
     serializer_class = ProductOrderSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = OrderFilter
 
     def get_queryset(self):
         products = ProductOrder.objects.all()
