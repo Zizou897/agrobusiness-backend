@@ -2,12 +2,14 @@ from fcm_django.models import FCMDevice
 from rest_framework import serializers
 
 from account.account_serializer import EntrepriseSerializer
+from settings.serializers import CountrySerializer
 from .models import ProfilTypeEnums, User, UserDeliveryAddress
 from cities_light.models import Country
 
 
 class VendorSerializer(serializers.ModelSerializer):
     entreprise = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
@@ -21,14 +23,14 @@ class VendorSerializer(serializers.ModelSerializer):
         entreprise = obj.entreprise_user.first()
         if entreprise:
             return {
-                'id': entreprise.id,
-                'name': entreprise.name,
-                'country': entreprise.country.name,
-                'address': entreprise.address,
-                'phone_number': entreprise.phone_number,
-                'logo': entreprise.logo.url if entreprise.logo else None,
-                'web_site': entreprise.web_site,
-                'description': entreprise.description
+                "id": entreprise.id,
+                "name": entreprise.name,
+                "country": entreprise.country.name,
+                "address": entreprise.address,
+                "phone_number": entreprise.phone_number,
+                "logo": entreprise.logo.url if entreprise.logo else None,
+                "web_site": entreprise.web_site,
+                "description": entreprise.description,
             }
         return None
 
@@ -52,14 +54,14 @@ class UserEssentialSerializer(serializers.ModelSerializer):
         entreprise = obj.entreprise_user.first()
         if entreprise:
             return {
-                'id': entreprise.id,
-                'name': entreprise.name,
-                'country': entreprise.country.name,
-                'address': entreprise.address,
-                'phone_number': entreprise.phone_number,
-                'logo': entreprise.logo.url if entreprise.logo else None,
-                'web_site': entreprise.web_site,
-                'description': entreprise.description
+                "id": entreprise.id,
+                "name": entreprise.name,
+                "country": entreprise.country.name,
+                "address": entreprise.address,
+                "phone_number": entreprise.phone_number,
+                "logo": entreprise.logo.url if entreprise.logo else None,
+                "web_site": entreprise.web_site,
+                "description": entreprise.description,
             }
         return None
 
@@ -187,6 +189,8 @@ class FCMDeviceSerializer(serializers.ModelSerializer):
 
 
 class UserDeliveryAddressEssentialSerializer(serializers.ModelSerializer):
+    country = CountrySerializer()
+
     class Meta:
         model = UserDeliveryAddress
         fields = [

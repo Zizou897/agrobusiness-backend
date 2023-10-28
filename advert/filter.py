@@ -16,3 +16,13 @@ class ProductFilter(filters.FilterSet):
 
 class SellerDeliveryFilter(filters.FilterSet):
     user = filters.CharFilter(field_name="user__id", lookup_expr="iexact")
+
+
+class OrderFilter(filters.FilterSet):
+    reference = filters.CharFilter(lookup_expr="icontains")
+    status = filters.CharFilter(lookup_expr="iexact")
+    user = filters.CharFilter(field_name="user__id", lookup_expr="iexact")
+    seller = filters.CharFilter(field_name="seller__id", lookup_expr="iexact")
+    min_total_price = filters.NumberFilter(field_name="total_price", lookup_expr="gte")
+    max_total_price = filters.NumberFilter(field_name="total_price", lookup_expr="lte")
+    

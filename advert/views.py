@@ -37,14 +37,19 @@ from advert.serializers import (
 )
 from authentication.models import User
 from core.exceptions import NotAuthorized
-from core.permissions import AllowOnlyVendor, AllowOnlyVendorOnDetroy, AllowUserOnlyOnGet
+from core.permissions import (
+    AllowOnlyVendor,
+    AllowOnlyVendorOnDetroy,
+    AllowUserOnlyOnGet,
+)
 from .models import (
     ProductFavorite,
     ProductOrder,
     Product,
     ProductType,
     ProductsSection,
-    SellerDelivery, OrderStatus,
+    SellerDelivery,
+    OrderStatus,
 )
 from .use_cases.update_product_order_status import UpdateProductOrderStatusUseCase
 
@@ -301,7 +306,11 @@ class ProductOrderListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        products = ProductOrder.objects.filter(user=self.request.user)
+        products = ProductOrder.objects.all()
+        if self.request.user.is_vendor():
+            products = ProductOrder.objects.filter(seller=self.request.user)
+        else:
+            products = ProductOrder.objects.filter(user=self.request.user)
         return products
 
 
@@ -345,27 +354,27 @@ class ProductFavoritesListView(ListAPIView):
 
 
 class SellerStatisticsAPIView(APIView):
-
     def get(self, request):
         user = request.user  # L'utilisateur authentifié
 
         # Calculez les statistiques pour l'utilisateur connecté
         seller_statistics = ProductOrder.objects.filter(seller=user).aggregate(
-            total_orders=Count('id'),
-            total_products=Count('product__id', distinct=True),
-            total_products_sold=Sum('quantity')
+            total_orders=Count("id"),
+            total_products=Count("product__id", distinct=True),
+            total_products_sold=Sum("quantity"),
         )
 
-        low_stock_products = Product.objects.filter(quantity__lt=10, seller=user).count()
+        low_stock_products = Product.objects.filter(
+            quantity__lt=10, seller=user
+        ).count()
 
         # Ajoutez la statistique des produits avec un stock faible
-        seller_statistics['low_stock_products'] = low_stock_products
+        seller_statistics["low_stock_products"] = low_stock_products
 
         return Response(seller_statistics)
 
 
 class WeeklySalesAPIView(APIView):
-
     def get(self, request):
         user = request.user  # L'utilisateur authentifié
 
@@ -378,23 +387,27 @@ class WeeklySalesAPIView(APIView):
         date_range = [start_of_week + timedelta(days=i) for i in range(7)]
 
         # Récupérez les ventes par jour de la semaine courante
-        daily_sales = ProductOrder.objects.filter(
-            seller=user,
-            delivery_date__range=(start_of_week, end_of_week),
-            status=OrderStatus.DELIVERED.value
-        ).values('delivery_date').annotate(
-            total_sales=Sum('total_price')
+        daily_sales = (
+            ProductOrder.objects.filter(
+                seller=user,
+                delivery_date__range=(start_of_week, end_of_week),
+                status=OrderStatus.DELIVERED.value,
+            )
+            .values("delivery_date")
+            .annotate(total_sales=Sum("total_price"))
         )
 
         print("daily_sales", daily_sales)
 
         # Créez une liste d'objets avec les clés "amount" et "date"
-        sales_by_day = [{"amount": entry['total_sales'] or 0, "date": str(entry['delivery_date'])} for entry in
-                        daily_sales]
+        sales_by_day = [
+            {"amount": entry["total_sales"] or 0, "date": str(entry["delivery_date"])}
+            for entry in daily_sales
+        ]
 
         # Remplissez les dates sans vente avec un montant de 0
         for date in date_range:
-            if not any(d['date'] == str(date) for d in sales_by_day):
+            if not any(d["date"] == str(date) for d in sales_by_day):
                 sales_by_day.append({"amount": 0, "date": str(date)})
 
         return Response(sales_by_day)
@@ -418,7 +431,6 @@ class SellerDeliveryView(ModelViewSet):
         if user.is_vendor():
             return SellerDelivery.objects.filter(user=user)
         return seller_delivery
-    
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-        
