@@ -106,8 +106,18 @@ class ProductViewSet(ModelViewSet):
         request=ProductCreateSerializer,
         summary="Create product",
     )
-    def perform_create(self, serializer):
-        serializer.save(seller=self.request.user)
+    # def perform_create(self, serializer):
+    #     serializer.save(seller=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        # Change serializer response data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        product = serializer.save(seller=self.request.user)
+        product_serializer = ProductEssentialSerializer(product)
+        return Response(product_serializer, status=201)
+
+
 
     def get_queryset(self):
         products = Product.objects.annotate(
