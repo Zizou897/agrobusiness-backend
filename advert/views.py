@@ -115,7 +115,7 @@ class ProductViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         product = serializer.save(seller=self.request.user)
         product_serializer = ProductEssentialSerializer(product)
-        return Response(product_serializer, status=201)
+        return Response(product_serializer.data, status=201)
 
 
 
