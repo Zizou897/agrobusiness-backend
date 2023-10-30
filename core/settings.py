@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     "services.devslabel.com",
     "31.220.72.160",
     "webadmin.devslabel.com",
+    "agrobusiness.devslabel.com",
 ]
 
 # Application definition
@@ -131,12 +132,14 @@ AUTH_PASSWORD_VALIDATORS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
     "https://services.devslabel.com",
+    "https://agrobusiness.devslabel.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:4200",
     "https://services.devslabel.com",
+    "https://agrobusiness.devslabel.com",
 ]
 
 CORS_ALLOW_METHODS = (
