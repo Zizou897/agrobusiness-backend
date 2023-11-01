@@ -289,6 +289,7 @@ class ProductOrder(models.Model):
         (OrderStatus.RECEIVED.value, "Reçu"),
         (OrderStatus.DELIVERED.value, "Livré"),
         (OrderStatus.CANCELED.value, "Annulé"),
+        (OrderStatus.READY_TO_BE_DELIVERED.value, "Prêt à être livré"),
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(
