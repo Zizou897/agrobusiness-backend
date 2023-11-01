@@ -1,5 +1,6 @@
 from fcm_django.models import FCMDevice
 from rest_framework import serializers
+from account.models import Store
 
 from settings.serializers import CountrySerializer
 from .models import User, UserDeliveryAddress
@@ -35,7 +36,7 @@ class VendorSerializer(serializers.ModelSerializer):
 
 
 class UserEssentialSerializer(serializers.ModelSerializer):
-    entreprise = serializers.SerializerMethodField()
+    store = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -46,21 +47,19 @@ class UserEssentialSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "phone_number",
-            "entreprise",
+            "store",
         ]
 
-    def get_entreprise(self, obj):
-        entreprise = obj.entreprise_user.first()
-        if entreprise:
+    def get_store(self, obj):
+        store: Store = obj.store_user.first()
+        if store:
             return {
-                "id": entreprise.id,
-                "name": entreprise.name,
-                "country": entreprise.country.name,
-                "address": entreprise.address,
-                "phone_number": entreprise.phone_number,
-                "logo": entreprise.logo.url if entreprise.logo else None,
-                "web_site": entreprise.web_site,
-                "description": entreprise.description,
+                "id": store.id,
+                "name": store.name,
+                "address": store.address,
+                "phone_number": store.phone_number,
+                "logo": store.logo.url if store.logo else None,
+                "description": store.description,
             }
         return None
 
