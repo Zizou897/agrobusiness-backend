@@ -25,13 +25,13 @@ class AllowOnlyVendor(BasePermission):
         )
 
 
-class AllowOnlyVendorOnDetroy(BasePermission):
+class AllowOnlyVendorOnDetroyAndCreate(BasePermission):
     """
     Allows access only to authenticated users.
     """
 
     def has_permission(self, request, view):
-        if request.method == "DELETE":
+        if request.method in ["DELETE", "POST"]:
             return bool(
                 request.user
                 and request.user.is_authenticated

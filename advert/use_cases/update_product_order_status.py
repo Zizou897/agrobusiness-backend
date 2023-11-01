@@ -16,6 +16,7 @@ class UpdateProductOrderStatusUseCase:
             OrderStatus.DELIVERED.value,
             OrderStatus.RECEIVED.value,
             OrderStatus.PENDING.value,
+            OrderStatus.READY_TO_BE_DELIVERED.value,
         ]
 
         if not status_is_allowed:
@@ -42,6 +43,7 @@ class UpdateProductOrderStatusUseCase:
             OrderStatus.CANCELED.value,
             OrderStatus.DELIVERED.value,
             OrderStatus.RECEIVED.value,
+            OrderStatus.READY_TO_BE_DELIVERED.value,
         ]
 
         client_allowed_status = [

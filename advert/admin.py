@@ -11,7 +11,7 @@ class AdvertAdmin(admin.ModelAdmin):
 
 @admin.register(SellerDelivery)
 class SellerDeliveryAdmin(admin.ModelAdmin):
-    list_display = ("id", "delivery_method", "delivery_time", "created_at")
+    list_display = ("id", "name", "delivery_time", "delivery_price", "created_at")
     ordering = ("-created_at",)
 
 
@@ -32,8 +32,8 @@ class ProductOrderAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "status",
-        "seller",
         "user",
+        # "store",
         "product",
         "quantity",
         "total_price",

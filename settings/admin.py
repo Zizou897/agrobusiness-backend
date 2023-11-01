@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ProductCategory, Sectors, Measure, PaymentMethod, DeliveryMethod
+from .models import ProductCategory, Sectors, Measure, PaymentMethod
 
 
 @admin.register(ProductCategory)
@@ -25,13 +25,6 @@ class MeasureAdmin(admin.ModelAdmin):
 
 @admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'created_at']
-    search_fields = ['name']
-    list_filter = ['created_at']
-
-
-@admin.register(DeliveryMethod)
-class DeliveryMethodAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'created_at']
     search_fields = ['name']
     list_filter = ['created_at']

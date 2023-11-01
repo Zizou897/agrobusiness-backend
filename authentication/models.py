@@ -87,6 +87,7 @@ class User(AbstractUser):
 
 
 class UserDeliveryAddress(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="delivery_addresses"
     )
@@ -123,6 +124,7 @@ class BroadcastGroup(models.Model):
         (ProfilTypeEnums.AGRIPRENEUR.value, "Agripreneur"),
         (ProfilTypeEnums.MERCHANT.value, "Commerçant"),
     )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     type_user = models.CharField(
         choices=PROFIL_TYPE,

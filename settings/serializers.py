@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from cities_light.models import Country
 from settings.models import (
-    DeliveryMethod,
     Measure,
     PaymentMethod,
     ProductCategory,
@@ -62,22 +61,6 @@ class PaymentMethodCreateSerializer(serializers.ModelSerializer):
         fields = [
             "name",
         ]
-
-
-class DeliveryMethodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DeliveryMethod
-        fields = [
-            "id",
-            "name",
-            "language_key",
-        ]
-
-
-class DeliveryMethodCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DeliveryMethod
-        fields = ["name", "language_key"]
 
 
 class CountrySerializer(serializers.ModelSerializer):

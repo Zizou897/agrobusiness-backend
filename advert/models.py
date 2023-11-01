@@ -1,5 +1,5 @@
 import uuid
-from cities_light.models import Country
+from cities_light.models import Country, City
 from django.db import models
 from advert.exceptions import OrderQuantityCannotBeGreaterThanProductQuantityError
 from advert.utils import calculDeliveryDateByNumberOfDays
@@ -34,26 +34,30 @@ class StockStatus(ExtendedEnum):
 class OrderStatus(ExtendedEnum):
     RECEIVED = "RECEIVED"
     PENDING = "PENDING"
+    READY_TO_BE_DELIVERED = "READY_TO_BE_DELIVERED"
     DELIVERED = "DELIVERED"
     CANCELED = "CANCELED"
 
 
 class SellerDelivery(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    delivery_method = models.ForeignKey(
-        "settings.DeliveryMethod",
-        on_delete=models.CASCADE,
-        verbose_name="Seller delivery delivery method",
-        related_name="seller_delivery_method",
+    name = models.CharField(
+        max_length=255, verbose_name="Seller delivery name", blank=True, null=True
     )
     delivery_time = models.PositiveIntegerField(
         verbose_name="Seller delivery delivery time in days"
     )
-    user = models.ForeignKey(
-        "authentication.User",
+    delivery_price = models.IntegerField(
+        verbose_name="Seller delivery delivery price",
+        default=0,
+    )
+    store = models.ForeignKey(
+        "account.Store",
         on_delete=models.CASCADE,
         verbose_name="Seller delivery user",
         related_name="seller_delivery_user",
+        null=True,
+        blank=True,
     )
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Seller delivery created at"
@@ -82,6 +86,7 @@ class Product(models.Model):
         related_name="product_images",
         blank=True,
     )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, verbose_name="Product name")
     short_description = models.TextField(
         verbose_name="Product short description", blank=True, null=True
@@ -91,7 +96,7 @@ class Product(models.Model):
         blank=True,
         null=True,
     )
-    price = models.FloatField(verbose_name="Product price")
+    price = models.IntegerField(verbose_name="Product price")
     quantity = models.PositiveIntegerField(verbose_name="Product quantity", default=0)
     category = models.ForeignKey(
         "settings.ProductCategory",
@@ -100,7 +105,7 @@ class Product(models.Model):
         related_name="product_category",
     )
     made_in = models.ForeignKey(
-        Country,
+        City,
         max_length=255,
         verbose_name="Product made in",
         null=True,
@@ -114,7 +119,7 @@ class Product(models.Model):
         choices=STATUS,
         max_length=255,
         verbose_name="Product status",
-        default=ProductStatus.UNPUBLISH.value,
+        default=ProductStatus.PUBLISH.value,
     )
     stock_status = models.CharField(
         choices=STOCK_STATUS,
@@ -128,11 +133,11 @@ class Product(models.Model):
         verbose_name="Product seller user",
         related_name="product_seller_user",
     )
-    entreprise = models.ForeignKey(
-        "account.Entreprise",
+    store = models.ForeignKey(
+        "account.Store",
         on_delete=models.CASCADE,
-        verbose_name="Product seller entreprise",
-        related_name="product_seller_entreprise",
+        verbose_name="Product seller store",
+        related_name="product_seller_store",
         null=True,
         blank=True,
     )
@@ -183,24 +188,29 @@ class Product(models.Model):
     def make_order(self, **kwargs):
         user: User = kwargs.get("user")
         quantity = kwargs.get("quantity")
-        seller_delivery: SellerDelivery = kwargs.get("seller_delivery")
+        delivery_method: SellerDelivery = kwargs.get("delivery_method")
         payment_method: PaymentMethod = kwargs.get("payment_method")
         order = ProductOrder.objects.create(
             product=self,
             user=user,
-            seller=seller_delivery.user,
             delivery_address=user.get_main_delivery_address(),
             quantity=quantity,
+            store=self.store,
             unit_price=self.price,
             total_price=self.price * quantity,
             payment_method=payment_method,
-            delivery_method=seller_delivery.delivery_method,
+            delivery_method=delivery_method,
             delivery_date=calculDeliveryDateByNumberOfDays(
-                seller_delivery.delivery_time
+                delivery_method.delivery_time
             ),
         )
         # Update product quantity
         self.update_quantity(self.quantity - quantity)
+
+        if self.quantity == 0:
+            self.stock_status = StockStatus.OUT_OF_STOCK.value
+            self.save(update_fields=["stock_status"])
+
         return order
 
 
@@ -298,11 +308,19 @@ class ProductOrder(models.Model):
         verbose_name="Product order user",
         related_name="product_order_user",
     )
-    seller = models.ForeignKey(
-        "authentication.User",
+    store = models.ForeignKey(
+        "account.Store",
         on_delete=models.CASCADE,
-        verbose_name="Product order seller",
-        related_name="product_order_seller",
+        verbose_name="Product order store",
+        related_name="product_order_store",
+        null=True,
+        blank=True,
+    )
+    delivery_method = models.ForeignKey(
+        SellerDelivery,
+        on_delete=models.CASCADE,
+        verbose_name="Product order delivery method",
+        related_name="product_order_delivery_method",
         null=True,
         blank=True,
     )
@@ -321,16 +339,9 @@ class ProductOrder(models.Model):
         verbose_name="Product order payment method",
         related_name="product_order_payment_method",
     )
-    delivery_method = models.ForeignKey(
-        "settings.DeliveryMethod",
-        on_delete=models.CASCADE,
-        verbose_name="Product order delivery method",
-        related_name="product_order_delivery_method",
-    )
     delivery_date = models.DateField(
         verbose_name="Product order delivery date", null=True, blank=True
     )
-
     delivery_address = models.ForeignKey(
         "authentication.UserDeliveryAddress",
         on_delete=models.CASCADE,
@@ -356,8 +367,11 @@ class ProductOrder(models.Model):
         if not self.reference:
             self.reference = f"PO-{uuid.uuid4().hex[:6].upper()}"
 
+        # Check if is a new order
+        is_new_order = not self.pk
+
         # Check if the quantity ordered is greater than the quantity of the product
-        if self.quantity > self.product.quantity:
+        if self.quantity > self.product.quantity and is_new_order:
             raise OrderQuantityCannotBeGreaterThanProductQuantityError()
 
         # Calculate the total price of the order
@@ -376,6 +390,7 @@ class ProductsSection(models.Model):
         (ProductType.NEW_ADDED_PRODUCTS.value, "Nouveaux produits ajoutés"),
         # (ProductType.MOST_SELLING_PRODUCTS.value, "Produits les plus vendus"),
     )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, verbose_name="Nom de la section")
     description = models.TextField(verbose_name="Description de la section")
     categories = models.ManyToManyField(

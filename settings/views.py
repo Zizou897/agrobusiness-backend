@@ -5,15 +5,12 @@ from settings.serializers import CountrySerializer
 from cities_light.models import Country
 from rest_framework.viewsets import ModelViewSet
 from settings.models import (
-    DeliveryMethod,
     Measure,
     PaymentMethod,
     ProductCategory,
     Sectors,
 )
 from settings.serializers import (
-    DeliveryMethodCreateSerializer,
-    DeliveryMethodSerializer,
     MeasureCreateSerializer,
     MeasureSerializer,
     PaymentMethodCreateSerializer,
@@ -63,16 +60,6 @@ class PaymentMethodView(ModelViewSet):
         if self.action in ["create", "update"]:
             return PaymentMethodCreateSerializer
         return PaymentMethodSerializer
-
-
-class DeliveryMethodView(ModelViewSet):
-    serializer_class = DeliveryMethodSerializer
-    queryset = DeliveryMethod.objects.all()
-
-    def get_serializer_class(self):
-        if self.action in ["create", "update"]:
-            return DeliveryMethodCreateSerializer
-        return DeliveryMethodSerializer
 
 
 class CountryView(APIView):

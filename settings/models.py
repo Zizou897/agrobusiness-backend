@@ -92,22 +92,3 @@ class PaymentMethod(models.Model):
     def __str__(self):
         return self.name
 
-
-class DeliveryMethod(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Delivery method name")
-    language_key = models.CharField(
-        max_length=255,
-        verbose_name="Delivery method language key",
-        blank=True,
-        null=True,
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Delivery method created at"
-    )
-
-    class Meta:
-        verbose_name = "Delivery method"
-        verbose_name_plural = "Delivery methods"
-
-    def __str__(self):
-        return self.name

@@ -16,10 +16,10 @@ router = DefaultRouter()
 
 router.register(r"products", ProductViewSet, basename="products")
 router.register(r"sections", ProductsSectionView, basename="sections")
-router.register(r"vendor-delivery", SellerDeliveryView, basename="delivery")
+router.register(r"seller-delivery", SellerDeliveryView, basename="delivery")
 
 urlpatterns = [
-    path("vendor/products/", VendorProductListView.as_view()),
+    path("seller/products/", VendorProductListView.as_view()),
     path("favorites/", ProductFavoritesListView.as_view()),
     path("orders/<uuid:pk>/", ProductOrderUpdateStatusView.as_view()),
     path("orders/", ProductOrderListView.as_view()),

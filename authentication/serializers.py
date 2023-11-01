@@ -1,9 +1,8 @@
 from fcm_django.models import FCMDevice
 from rest_framework import serializers
 
-from account.account_serializer import EntrepriseSerializer
 from settings.serializers import CountrySerializer
-from .models import ProfilTypeEnums, User, UserDeliveryAddress
+from .models import User, UserDeliveryAddress
 from cities_light.models import Country
 
 
@@ -194,6 +193,7 @@ class UserDeliveryAddressEssentialSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDeliveryAddress
         fields = [
+            "id",
             "address",
             "city",
             "country",

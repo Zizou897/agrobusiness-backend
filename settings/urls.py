@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 from settings.views import (
     CategoryProductView,
     CountryView,
-    DeliveryMethodView,
     MeasureView,
     PaymentMethodView,
     SectorView,
@@ -16,7 +15,6 @@ router.register("category-product", CategoryProductView, basename="category-prod
 router.register("sector", SectorView, basename="sector")
 router.register("measure", MeasureView, basename="measure")
 router.register("payment-method", PaymentMethodView, basename="payment-method")
-router.register("delivery-method", DeliveryMethodView, basename="delivery-method")
 
 
 urlpatterns = [

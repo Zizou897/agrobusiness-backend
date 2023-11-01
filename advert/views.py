@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-
 from django.db.models import Avg, Count, Sum
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
@@ -21,7 +20,6 @@ from advert.serializers import (
     AddProductCommentSerializer,
     AddProductImageSerializer,
     ProductCreateSerializer,
-    ProductDetailsSerializer,
     ProductFavoriteSerializer,
     ProductImageSerializer,
     ProductOrderCreateSerializer,
@@ -39,7 +37,7 @@ from authentication.models import User
 from core.exceptions import NotAuthorized
 from core.permissions import (
     AllowOnlyVendor,
-    AllowOnlyVendorOnDetroy,
+    AllowOnlyVendorOnDetroyAndCreate,
     AllowUserOnlyOnGet,
 )
 from .models import (
@@ -95,7 +93,7 @@ class ProductsSectionView(ModelViewSet):
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductEssentialSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, AllowOnlyVendorOnDetroy]
+    permission_classes = [IsAuthenticatedOrReadOnly, AllowOnlyVendorOnDetroyAndCreate]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProductFilter
 
@@ -113,10 +111,10 @@ class ProductViewSet(ModelViewSet):
         # Change serializer response data
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        product = serializer.save(seller=self.request.user)
+        user = self.request.user
+        product = serializer.save(seller=user)
         product_serializer = ProductEssentialSerializer(product)
         return Response(product_serializer.data, status=201)
-
 
 
     def get_queryset(self):
@@ -133,7 +131,7 @@ class ProductViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return ProductCreateSerializer
-        return ProductDetailsSerializer
+        return ProductEssentialSerializer
 
     @extend_schema(
         responses={
@@ -287,13 +285,13 @@ class ProductViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         quantity = serializer.validated_data["quantity"]
-        seller_delivery: SellerDelivery = serializer.validated_data["seller_delivery"]
+        delivery_method: SellerDelivery = serializer.validated_data["delivery_method"]
         payment_method = serializer.validated_data["payment_method"]
 
         product.make_order(
             user=user,
             quantity=quantity,
-            seller_delivery=seller_delivery,
+            delivery_method=delivery_method,
             payment_method=payment_method,
         )
         # Send notification to seller
@@ -409,8 +407,6 @@ class WeeklySalesAPIView(APIView):
             .annotate(total_sales=Sum("total_price"))
         )
 
-        print("daily_sales", daily_sales)
-
         # Créez une liste d'objets avec les clés "amount" et "date"
         sales_by_day = [
             {"amount": entry["total_sales"] or 0, "date": str(entry["delivery_date"])}
@@ -441,8 +437,5 @@ class SellerDeliveryView(ModelViewSet):
         user: User = self.request.user
         seller_delivery = SellerDelivery.objects.all()
         if user.is_vendor():
-            return SellerDelivery.objects.filter(user=user)
+            return SellerDelivery.objects.filter(store__user=user)
         return seller_delivery
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
