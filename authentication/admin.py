@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User
+from .models import User, UserDeliveryAddress
 
 
 @admin.register(User)
@@ -14,3 +14,17 @@ class UserAdmin(admin.ModelAdmin):
         "is_verified",
     ]
     search_fields = ["email"]
+
+
+@admin.register(UserDeliveryAddress)
+class UserDeliveryAddressAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "user",
+        "address",
+        "city",
+        "country",
+        "is_main",
+    ]
+    search_fields = ["user__email"]
+    list_filter = ["is_default"]
