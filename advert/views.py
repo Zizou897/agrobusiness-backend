@@ -368,14 +368,14 @@ class SellerStatisticsAPIView(APIView):
         user = request.user  # L'utilisateur authentifié
 
         # Calculez les statistiques pour l'utilisateur connecté
-        seller_statistics = ProductOrder.objects.filter(seller=user).aggregate(
+        seller_statistics = ProductOrder.objects.filter(store__user=user).aggregate(
             total_orders=Count("id"),
             total_products=Count("product__id", distinct=True),
             total_products_sold=Sum("quantity"),
         )
 
         low_stock_products = Product.objects.filter(
-            quantity__lt=10, seller=user
+            quantity__lt=10, store__user=user
         ).count()
 
         # Ajoutez la statistique des produits avec un stock faible
@@ -399,7 +399,7 @@ class WeeklySalesAPIView(APIView):
         # Récupérez les ventes par jour de la semaine courante
         daily_sales = (
             ProductOrder.objects.filter(
-                seller=user,
+                store__user=user,
                 delivery_date__range=(start_of_week, end_of_week),
                 status=OrderStatus.DELIVERED.value,
             )
