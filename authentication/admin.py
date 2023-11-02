@@ -26,5 +26,3 @@ class UserDeliveryAddressAdmin(admin.ModelAdmin):
         "country",
         "is_main",
     ]
-    search_fields = ["user__email"]
-    list_filter = ["is_default"]
