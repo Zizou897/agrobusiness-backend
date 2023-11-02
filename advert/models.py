@@ -372,7 +372,7 @@ class ProductOrder(models.Model):
         is_new_order = not self.pk
 
         # Check if the quantity ordered is greater than the quantity of the product
-        if self.quantity > self.product.quantity and is_new_order:
+        if self.quantity > self.product.quantity:
             raise OrderQuantityCannotBeGreaterThanProductQuantityError()
 
         # Calculate the total price of the order
