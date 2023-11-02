@@ -67,6 +67,7 @@ class ProductEssentialSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
+            "short_description",
             "price",
             "quantity",
             "category",
