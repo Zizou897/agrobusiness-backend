@@ -15,7 +15,7 @@ class ProductFilter(filters.FilterSet):
 
 
 class SellerDeliveryFilter(filters.FilterSet):
-    user = filters.CharFilter(field_name="user__id", lookup_expr="iexact")
+    store = filters.CharFilter(field_name="store__id", lookup_expr="iexact")
 
 
 class OrderFilter(filters.FilterSet):
