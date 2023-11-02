@@ -59,6 +59,7 @@ class ProductEssentialSerializer(serializers.ModelSerializer):
     category = ProductCategorySerializer()
     made_in = serializers.StringRelatedField()
     images = ProductImageSerializer(many=True)
+    store = StoreSerializer()
 
     class Meta:
         model = Product
