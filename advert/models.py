@@ -328,10 +328,10 @@ class ProductOrder(models.Model):
     quantity = models.PositiveIntegerField(
         verbose_name="Product order item quantity", default=0
     )
-    unit_price = models.FloatField(
+    unit_price = models.IntegerField(
         verbose_name="Product order item unit price", default=0
     )
-    total_price = models.FloatField(
+    total_price = models.IntegerField(
         verbose_name="Product order item total price", default=0
     )
     payment_method = models.ForeignKey(
