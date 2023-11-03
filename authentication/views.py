@@ -74,7 +74,7 @@ class RegisterView(CreateAPIView):
         country = serializer.validated_data["country"]
 
         use_case = RegisterUserUseCase()
-        use_case.execute(
+        user = use_case.execute(
             username=username,
             email=email,
             password=password,
@@ -84,7 +84,7 @@ class RegisterView(CreateAPIView):
             phone_number=phone_number,
             country=country,
         )
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED, data={"user_id": user.id})
 
 
 class EmailConfirmationView(CreateAPIView):
