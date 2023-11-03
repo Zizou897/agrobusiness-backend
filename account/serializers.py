@@ -36,6 +36,7 @@ class StoreCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
         fields = [
+            "user",
             "name",
             "phone_number",
             "logo",

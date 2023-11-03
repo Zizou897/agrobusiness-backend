@@ -13,6 +13,3 @@ class StoreView(ModelViewSet):
         if self.action in ["create", "put", "patch"]:
             return StoreCreateSerializer
         return StoreSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
