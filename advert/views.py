@@ -318,9 +318,9 @@ class ProductOrderListView(ListAPIView):
     def get_queryset(self):
         products = ProductOrder.objects.all()
         if self.request.user.is_vendor():
-            products = ProductOrder.objects.filter(seller=self.request.user)
+            products = ProductOrder.objects.filter(store__user=self.request.user)
         else:
-            products = ProductOrder.objects.filter(user=self.request.user)
+            products = ProductOrder.objects.filter(store__user=self.request.user)
         return products
 
 
