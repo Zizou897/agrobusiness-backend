@@ -385,7 +385,7 @@ class SellerStatisticsAPIView(APIView):
         seller_statistics = {
             "total_orders": totat_orders["total_orders"] or 0,
             "total_products_sold": total_products_sold["total_products_sold"] or 0,
-            "total_product": total_product["total_product"] or 0,
+            "total_products": total_product["total_product"] or 0,
             "low_stock_products": low_stock_products or 0,
         }
 
