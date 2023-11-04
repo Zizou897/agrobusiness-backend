@@ -116,7 +116,6 @@ class ProductViewSet(ModelViewSet):
         product_serializer = ProductEssentialSerializer(product)
         return Response(product_serializer.data, status=201)
 
-
     def get_queryset(self):
         products = Product.objects.annotate(
             average_rating=Avg("product_comment_product__rating")
@@ -366,10 +365,16 @@ class SellerStatisticsAPIView(APIView):
         user = request.user  # L'utilisateur authentifié
 
         # Calculez les statistiques pour l'utilisateur connecté
-        seller_statistics = ProductOrder.objects.filter(store__user=user).aggregate(
+        totat_orders = ProductOrder.objects.filter(store__user=user).aggregate(
             total_orders=Count("id"),
-            total_products=Count("product__id", distinct=True),
-            total_products_sold=Sum("quantity"),
+        )
+
+        total_products_sold = ProductOrder.objects.filter(
+            store__user=user, status=OrderStatus.DELIVERED.value
+        ).aggregate(total_products_sold=Sum("quantity"))
+
+        total_product = Product.objects.filter(store__user=user).aggregate(
+            total_product=Count("id")
         )
 
         low_stock_products = Product.objects.filter(
@@ -377,9 +382,14 @@ class SellerStatisticsAPIView(APIView):
         ).count()
 
         # Ajoutez la statistique des produits avec un stock faible
-        seller_statistics["low_stock_products"] = low_stock_products
+        seller_statistics = {
+            "total_orders": totat_orders["total_orders"] or 0,
+            "total_products_sold": total_products_sold["total_products_sold"] or 0,
+            "total_product": total_product["total_product"] or 0,
+            "low_stock_products": low_stock_products or 0,
+        }
 
-        return Response(seller_statistics)
+        return Response(data=seller_statistics)
 
 
 class WeeklySalesAPIView(APIView):
