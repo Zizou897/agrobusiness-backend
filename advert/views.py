@@ -347,8 +347,7 @@ class ProductOrderUpdateStatusView(UpdateAPIView):
             product_order=order, status=status, user=self.request.user
         )
         update_product_order_use_case.execute()
-        order.status = status
-        order.save(update_fields=["status"])
+        ProductOrder.objects.filter(id=order.id).update(status=status)
         return Response(status=200)
 
 
