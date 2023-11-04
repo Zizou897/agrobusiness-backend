@@ -336,8 +336,7 @@ class ProductOrderUpdateStatusView(UpdateAPIView):
             product_order=product_order, status=status, user=self.request.user
         )
         update_product_order_use_case.execute()
-        product_order.status = status
-        product_order.save(update_fields=["status"])
+        ProductOrder.objects.filter(id=product_order.id).update(status=status)
 
     def partial_update(self, request, *args, **kwargs):
         order: ProductOrder = self.get_object()
