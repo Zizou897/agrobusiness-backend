@@ -1,6 +1,12 @@
 from rest_framework.exceptions import APIException
 
 
+class CannotDeleteProductWithOrderError(APIException):
+    status_code = 400
+    default_detail = "Impossible de supprimer un produit qui a déjà été commandé, veuillez tout d'abord annuler ou terminer la commande"
+    default_code = "cannot_delete_product_with_order"
+
+
 class OrderQuantityCannotBeGreaterThanProductQuantityError(APIException):
     status_code = 400
     default_detail = "La quantité de la commande ne peut pas être supérieure à la quantité du produit"

@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from advert.exceptions import (
+    CannotDeleteProductWithOrderError,
     OnlyOrdererCanCommentError,
     ProductOwnerCannotCommentError,
     UserMustHasDeliveryAddressError,
@@ -132,7 +133,6 @@ class ProductViewSet(ModelViewSet):
             return ProductCreateSerializer
         return ProductEssentialSerializer
 
-
     @extend_schema(
         responses={
             201: "",
@@ -148,6 +148,9 @@ class ProductViewSet(ModelViewSet):
     )
     def archive(self, request, pk=None):
         product: Product = self.get_object()
+        can_be_archived = product.can_be_archived()
+        if not can_be_archived:
+            raise CannotDeleteProductWithOrderError()
         Product.objects.filter(id=product.id).update(
             status=ProductStatus.ARCHIVED.value
         )

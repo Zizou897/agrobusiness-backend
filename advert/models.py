@@ -157,6 +157,19 @@ class Product(models.Model):
     def is_ordered_by(self, user: User):
         return ProductOrder.objects.filter(product=self, user=user).exists()
 
+    def is_ordered(self):
+        allow_status = [
+            OrderStatus.PENDING.value,
+            OrderStatus.RECEIVED.value,
+            OrderStatus.READY_TO_BE_DELIVERED.value,
+        ]
+        return ProductOrder.objects.filter(
+            product=self, status__in=allow_status
+        ).exists()
+
+    def can_be_archived(self):
+        return not self.is_ordered()
+
     def is_product_seller(self, user: User):
         return self.seller == user
 
@@ -182,7 +195,6 @@ class Product(models.Model):
 
     def get_images(self):
         return ProductImage.objects.filter(product=self)
-
 
     def update_quantity(self, quantity):
         self.quantity = quantity
