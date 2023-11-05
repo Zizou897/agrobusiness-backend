@@ -119,7 +119,7 @@ class ProductViewSet(ModelViewSet):
         return Response(product_serializer.data, status=201)
 
     def get_queryset(self):
-        products = Product.objects.filter(status=ProductStatus.PUBLISHED.value)
+        products = Product.objects.filter(status=ProductStatus.PUBLISH.value)
         products.annotate(average_rating=Avg("product_comment_product__rating"))
         return products
 
