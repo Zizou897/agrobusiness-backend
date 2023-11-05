@@ -319,7 +319,7 @@ class ProductOrderListView(ListAPIView):
         if self.request.user.is_vendor():
             products = ProductOrder.objects.filter(store__user=self.request.user)
         else:
-            products = ProductOrder.objects.filter(store__user=self.request.user)
+            products = ProductOrder.objects.filter(user=self.request.user)
         return products
 
 
