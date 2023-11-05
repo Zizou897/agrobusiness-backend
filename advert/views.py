@@ -44,6 +44,7 @@ from .models import (
     ProductFavorite,
     ProductOrder,
     Product,
+    ProductStatus,
     ProductType,
     ProductsSection,
     SellerDelivery,
@@ -117,9 +118,8 @@ class ProductViewSet(ModelViewSet):
         return Response(product_serializer.data, status=201)
 
     def get_queryset(self):
-        products = Product.objects.annotate(
-            average_rating=Avg("product_comment_product__rating")
-        )
+        products = Product.objects.filter(status=ProductStatus.PUBLISHED.value)
+        products.annotate(average_rating=Avg("product_comment_product__rating"))
         return products
 
     def perform_destroy(self, instance):
@@ -131,6 +131,13 @@ class ProductViewSet(ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return ProductCreateSerializer
         return ProductEssentialSerializer
+
+    def archive(self, request, pk=None, permission_classes=[AllowOnlyVendor]):
+        product: Product = self.get_object()
+        Product.objects.filter(id=product.id).update(
+            status=ProductStatus.ARCHIVED.value
+        )
+        return Response(status=200)
 
     @extend_schema(
         responses={
@@ -155,7 +162,7 @@ class ProductViewSet(ModelViewSet):
 
     @extend_schema(
         responses={
-            201: "",
+            200: "",
         },
         request=AddProductImageSerializer,
         summary="Add product image",

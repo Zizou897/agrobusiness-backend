@@ -65,7 +65,7 @@ class PaymentMethodView(ModelViewSet):
 class CountryView(APIView):
     def get(self, request):
         pays = Country.objects.all()
-        featured_country = Country.objects.get(code2="CI")
+        featured_country = Country.objects.get(code2="SN")
         countries = sorted(pays, key=lambda c: c != featured_country)
         serializer_context = {
             "request": request,

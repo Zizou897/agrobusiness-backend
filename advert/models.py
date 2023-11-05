@@ -24,6 +24,7 @@ class ProductStatus(ExtendedEnum):
     UNPUBLISH = "UNPUBLISH"
     WAIT = "WAIT"
     REFUSED = "REFUSED"
+    ARCHIVED = "ARCHIVED"
 
 
 class StockStatus(ExtendedEnum):
@@ -74,6 +75,7 @@ class Product(models.Model):
         (ProductStatus.UNPUBLISH.value, "Non publié"),
         (ProductStatus.WAIT.value, "En attente"),
         (ProductStatus.REFUSED.value, "Refusé"),
+        (ProductStatus.ARCHIVED.value, "Archivé"),
     )
 
     STOCK_STATUS = (
@@ -180,6 +182,7 @@ class Product(models.Model):
 
     def get_images(self):
         return ProductImage.objects.filter(product=self)
+
 
     def update_quantity(self, quantity):
         self.quantity = quantity

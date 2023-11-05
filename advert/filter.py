@@ -1,5 +1,7 @@
 from django_filters import rest_framework as filters
 
+from advert.models import OrderStatus
+
 
 class ProductFilter(filters.FilterSet):
     name = filters.CharFilter(lookup_expr="icontains")
@@ -20,8 +22,16 @@ class SellerDeliveryFilter(filters.FilterSet):
 class OrderFilter(filters.FilterSet):
     reference = filters.CharFilter(lookup_expr="icontains")
     status = filters.CharFilter(lookup_expr="iexact")
+    state = filters.CharFilter(method="filter_by_status")
     user = filters.CharFilter(field_name="user__id", lookup_expr="iexact")
     store = filters.CharFilter(field_name="store__id", lookup_expr="iexact")
     min_total_price = filters.NumberFilter(field_name="total_price", lookup_expr="gte")
     max_total_price = filters.NumberFilter(field_name="total_price", lookup_expr="lte")
     
+
+    def filter_by_status(self, queryset, name, value):
+        if value.lower() == "active":
+            return queryset.exclude(status__in=[OrderStatus.CANCELED.value, OrderStatus.DELIVERED.value])
+        elif value.lower() == "inactive":
+            return queryset.filter(status__in=[OrderStatus.CANCELED.value, OrderStatus.DELIVERED.value])
+        return queryset
