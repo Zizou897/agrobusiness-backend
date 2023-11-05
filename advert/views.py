@@ -132,7 +132,21 @@ class ProductViewSet(ModelViewSet):
             return ProductCreateSerializer
         return ProductEssentialSerializer
 
-    def archive(self, request, pk=None, permission_classes=[AllowOnlyVendor]):
+
+    @extend_schema(
+        responses={
+            201: "",
+        },
+        request="",
+        summary="Archive product",
+    )
+    @action(
+        detail=True,
+        methods=["PUT"],
+        permission_classes=[AllowOnlyVendor],
+        url_path="archive",
+    )
+    def archive(self, request, pk=None):
         product: Product = self.get_object()
         Product.objects.filter(id=product.id).update(
             status=ProductStatus.ARCHIVED.value
