@@ -397,12 +397,12 @@ class SellerStatisticsAPIView(APIView):
             store__user=user, status=OrderStatus.DELIVERED.value
         ).aggregate(total_products_sold=Sum("quantity"))
 
-        total_product = Product.objects.filter(store__user=user).aggregate(
+        total_product = Product.objects.filter(store__user=user, status=ProductStatus.PUBLISH.value).aggregate(
             total_product=Count("id")
         )
 
         low_stock_products = Product.objects.filter(
-            quantity__lt=10, store__user=user
+            quantity__lt=10, store__user=user, status=ProductStatus.PUBLISH.value
         ).count()
 
         # Ajoutez la statistique des produits avec un stock faible
