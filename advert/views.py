@@ -328,7 +328,7 @@ class VendorProductListView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Product.objects.filter(seller=user)
+        return Product.objects.filter(seller=user, status=ProductStatus.PUBLISH.value)
 
 
 class ProductOrderListView(ListAPIView):
