@@ -31,6 +31,8 @@ ALLOWED_HOSTS = [
     "31.220.72.160",
     "webadmin.devslabel.com",
     "agrobusiness.devslabel.com",
+    "service.loumabi.org",
+    "loumabi.org",
 ]
 
 # Application definition
@@ -133,6 +135,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
     "https://services.devslabel.com",
     "https://agrobusiness.devslabel.com",
+    "https://service.loumabi.org",
+    "https://loumabi.org",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -140,6 +144,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:4200",
     "https://services.devslabel.com",
     "https://agrobusiness.devslabel.com",
+    "https://service.loumabi.org",
+    "https://loumabi.org",
 ]
 
 CORS_ALLOW_METHODS = (
