@@ -13,9 +13,8 @@ class SendResetPasswordEmailUseCase:
         recepient_username = user.username
 
         context = {
-            'RECIPIENT_NAME': recepient_full_name,
-            'OTP_CODE': code,
-            'USERNAME': recepient_username,
+            "RECIPIENT_NAME": recepient_full_name,
+            "OTP_CODE": code,
+            "USERNAME": recepient_username,
         }
-
-        SendNotification.send_mail(context=context, template_name='reset_password', to=[recepient_email])
+        SendNotification.mail(context, "reset_password", [recepient_email])
