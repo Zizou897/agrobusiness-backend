@@ -15,11 +15,13 @@ class GenererCodeOTPUsecase:
         hotp_device.key = key
         hotp_device.counter += 1
 
-        hotp_device.save(update_fields=['key', 'counter'])
+        hotp_device.save(update_fields=["key", "counter"])
 
         updated_hotp_device = HOTPDevice.objects.get(user_id=user_id)
 
         # Générer le code OTP
-        otp_token = HotpVerification.generate_token(updated_hotp_device.counter, updated_hotp_device.key)
+        otp_token = HotpVerification.generate_token(
+            updated_hotp_device.counter, updated_hotp_device.key
+        )
 
         return otp_token

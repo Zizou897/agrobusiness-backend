@@ -12,7 +12,9 @@ class SendNotification:
         self.notification = notification
 
     def mail(self, context, template_name, to):
-        return self.notification.send(context=context, template_name=template_name, to=to)
+        return self.notification.send(
+            context=context, template_name=template_name, to=to
+        )
 
     def sms(self, to: str, text: str):
         return self.notification.send(to=to, text=text)

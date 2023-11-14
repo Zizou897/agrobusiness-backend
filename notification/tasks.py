@@ -1,6 +1,10 @@
 from celery import shared_task
-from notification.use_cases.send_reset_password_email_use_case import SendResetPasswordEmailUseCase
-from notification.use_cases.send_verification_email_use_case import SendVerificationEmailUseCase
+from notification.use_cases.send_reset_password_email_use_case import (
+    SendResetPasswordEmailUseCase,
+)
+from notification.use_cases.send_verification_email_use_case import (
+    SendVerificationEmailUseCase,
+)
 
 
 @shared_task
