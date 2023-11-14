@@ -1,25 +1,24 @@
-from typing import Union, List
-from templated_mail.mail import BaseEmailMessage
+from abc import ABC, abstractmethod
+
+
+class Notification(ABC):
+    @abstractmethod
+    def send(self, **kwargs):
+        pass
 
 
 class SendNotification:
-    @staticmethod
-    def send_mail(**kwargs):
-        context: dict[str, Union[str, int]] = kwargs.get('context')
-        template_name = kwargs.get('template_name')
-        to: List[str] = kwargs.get('to')
+    def __init__(self, notification: Notification):
+        self.notification = notification
 
-        # Send mail
-        html_message = BaseEmailMessage(
-            template_name=template_name + '.html',
-            context=context,
-        )
-        return html_message.send(to=to)
+    def mail(self, context, template_name, to):
+        return self.notification.send(context=context, template_name=template_name, to=to)
 
-    @staticmethod
-    def send_sms(self, **kwargs):
-        pass
+    def sms(self, to: str, text: str):
+        return self.notification.send(to=to, text=text)
 
-    @staticmethod
-    def send_push_notification(self, **kwargs):
-        pass
+    def push_notification(self, **kwargs):
+        self.notification.send(**kwargs)
+
+    def whatsapp_message(self, **kwargs):
+        self.notification.send(**kwargs)

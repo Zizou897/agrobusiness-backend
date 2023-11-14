@@ -21,3 +21,4 @@ drf-spectacular-sidecar~=2023.10.1
 Jinja2~=3.1.2
 django-smtp-ssl~=1.0
 django_otp~=1.2.4
+infobip-api-python-sdk~=5.0.1

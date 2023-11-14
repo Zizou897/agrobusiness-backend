@@ -36,6 +36,7 @@ from advert.serializers import (
 )
 from authentication.models import User
 from core.exceptions import NotAuthorized
+from core.pagination import CustomPagination
 from core.permissions import (
     AllowOnlyVendor,
     AllowOnlyVendorOnDetroyAndCreate,
@@ -98,6 +99,7 @@ class ProductViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, AllowOnlyVendorOnDetroyAndCreate]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProductFilter
+    pagination_class = CustomPagination
 
     @extend_schema(
         responses={
@@ -325,6 +327,7 @@ class VendorProductListView(ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductEssentialSerializer
     permission_classes = [AllowOnlyVendor]
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -337,6 +340,7 @@ class ProductOrderListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = OrderFilter
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         products = ProductOrder.objects.all()

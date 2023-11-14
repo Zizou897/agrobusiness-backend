@@ -14,6 +14,7 @@ from authentication.serializers import (
     UserEssentialSerializer,
 )
 from settings.serializers import (
+    CountrySerializer,
     MeasureSerializer,
     PaymentMethodSerializer,
     ProductCategorySerializer,
@@ -57,7 +58,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class ProductEssentialSerializer(serializers.ModelSerializer):
     measure = MeasureSerializer()
     category = ProductCategorySerializer()
-    made_in = serializers.StringRelatedField()
+    made_in = CountrySerializer()
     images = ProductImageSerializer(many=True)
     store = StoreSerializer()
 
