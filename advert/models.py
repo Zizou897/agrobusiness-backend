@@ -107,7 +107,7 @@ class Product(models.Model):
         related_name="product_category",
     )
     made_in = models.ForeignKey(
-        City,
+        Country,
         max_length=255,
         verbose_name="Product made in",
         null=True,
