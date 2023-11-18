@@ -8,7 +8,6 @@ from core.base_enum import ExtendedEnum
 from core.constants import PRODUCT_IMAGE_PATH
 from core.validators import validate_image_extension, validate_image_size
 from settings.models import PaymentMethod
-from django.db.models import Sum
 from ckeditor.fields import RichTextField
 from django.core.validators import MaxValueValidator, MinValueValidator
 

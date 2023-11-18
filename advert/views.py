@@ -50,7 +50,7 @@ from .models import (
     ProductType,
     ProductsSection,
     SellerDelivery,
-    OrderStatus,
+    OrderStatus, ProductImage,
 )
 from .use_cases.update_product_order_status import UpdateProductOrderStatusUseCase
 
@@ -108,9 +108,6 @@ class ProductViewSet(ModelViewSet):
         request=ProductCreateSerializer,
         summary="Create product",
     )
-    # def perform_create(self, serializer):
-    #     serializer.save(seller=self.request.user)
-
     def create(self, request, *args, **kwargs):
         # Change serializer response data
         serializer = self.get_serializer(data=request.data)
@@ -196,7 +193,9 @@ class ProductViewSet(ModelViewSet):
         serializer = AddProductImageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product_image = serializer.save()
-        product = self.get_object()
+        product: Product = self.get_object()
+        if product_image.is_main:
+            product.images.exclude(id=product_image.id).update(is_main=False)
         product.images.add(product_image)
         return Response(status=201)
 
