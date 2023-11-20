@@ -4,6 +4,7 @@ from authentication.exceptions import (
     UsernameOrEmailAlreadyExistsError,
 )
 from authentication.models import User
+from notification.signals import user_registered
 from notification.use_cases.generate_otp_code_use_case import GenererCodeOTPUsecase
 from notification.tasks import send_mail_verification
 from notification.use_cases.send_verification_email_use_case import SendVerificationEmailUseCase
@@ -36,7 +37,5 @@ class RegisterUserUseCase:
             last_name=last_name,
             phone_number=phone_number,
         )
-
-        otp_code = GenererCodeOTPUsecase().execute(user.id)
-        transaction.on_commit(lambda: send_mail_verification.delay(user.id, otp_code))
+        transaction.on_commit(lambda: user_registered.send(sender=self.__class__, user_id=user.id))
         return user

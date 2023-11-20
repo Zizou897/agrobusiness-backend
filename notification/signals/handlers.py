@@ -5,7 +5,7 @@ from notification.tasks import (
     send_notification_order_confirmed,
     send_notification_order_created,
     send_notification_order_delivered,
-    send_notification_order_ready_to_deliver,
+    send_notification_order_ready_to_deliver, send_mail_verification,
 )
 from notification.use_cases.generate_otp_code_use_case import GenererCodeOTPUsecase
 from notification.signals import (
@@ -30,7 +30,7 @@ def handle_reset_password_request(sender, **kwargs):
 def handle_user_registered(sender, **kwargs):
     user_id = kwargs["user_id"]
     otp_code = GenererCodeOTPUsecase.execute(user_id)
-    send_mail_reset_password.delay(user_id, otp_code)
+    send_mail_verification.delay(user_id, otp_code)
 
 
 @receiver(order_created)

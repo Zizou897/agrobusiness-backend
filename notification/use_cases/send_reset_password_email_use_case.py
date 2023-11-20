@@ -1,5 +1,6 @@
 from rest_framework.generics import get_object_or_404
 from authentication.models import User
+from notification.providers.send_email_notification import SendEmailNotification
 from notification.utils.send_notification import SendNotification
 
 
@@ -17,4 +18,6 @@ class SendResetPasswordEmailUseCase:
             "OTP_CODE": code,
             "USERNAME": recepient_username,
         }
-        SendNotification.mail(context, "reset_password", [recepient_email])
+        email_notification = SendEmailNotification()
+        send_notification = SendNotification(email_notification)
+        send_notification.mail(context, "reset_password", [recepient_email])

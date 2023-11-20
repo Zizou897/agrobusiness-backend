@@ -1,5 +1,6 @@
 from rest_framework.generics import get_object_or_404
 from authentication.models import User
+from notification.providers.send_email_notification import SendEmailNotification
 from notification.utils.send_notification import SendNotification
 
 
@@ -17,4 +18,6 @@ class SendVerificationEmailUseCase:
             "USERNAME": username,
         }
 
-        SendNotification.mail(context, "email_verification", [recepient_email])
+        email_notification = SendEmailNotification()
+        send_notification = SendNotification(email_notification)
+        send_notification.mail(context, "email_verification", [recepient_email])
