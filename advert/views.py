@@ -321,11 +321,8 @@ class ProductViewSet(ModelViewSet):
             delivery_method=delivery_method,
             payment_method=payment_method,
         )
-        channels = [NotificationChannelEnum.SMS]
-        send_notification_order_created_use_case = SendNotificationOrderCreatedUseCase(order.id, channels)
-        send_notification_order_created_use_case.execute()
         # Send notification to seller
-        # order_created.send(sender=self.__class__, order_id=order.id)
+        order_created.send(sender=self.__class__, order_id=order.id)
         return Response(status=201)
 
 
