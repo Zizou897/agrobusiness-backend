@@ -23,7 +23,7 @@ class SendNotificationOrderConfirmedUseCase:
                 f"Bonjour {user_full_name}, "
                 f"votre commande"
                 f" avec la référence "
-                f"{order_reference} a été confirmée"
+                f"{order_reference} a été confirmée par le vendeur"
             )
             .set_data({"type": NotificationTypeEnum.order_confirmed.value})
             .build()
