@@ -22,7 +22,7 @@ class SendTestPushNotificationView(APIView):
             .set_body("Une nouvelle commande a été passée.") \
             .set_data({"type": "order"}) \
             .build()
-        user_id = 'aa1497a2-ba7c-45bf-a229-6370c8c2557c'
+        user_id = '0d197b42-9396-4074-a6c8-74595ad83fa5'
         push_notification = SendPushNotification(user_id, message)
         send_notification = SendNotification(push_notification)
         send_notification.push_notification()
