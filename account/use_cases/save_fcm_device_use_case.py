@@ -16,7 +16,7 @@ class SaveFCMDeviceUseCase:
             device = FCMDevice.objects.get(registration_id=registration_id)
 
             # Verify if the device is already registered with the user
-            if device.registration_id == registration_id and device.user == user:
+            if device.registration_id == registration_id:
                 return device
             else:
                 device.registration_id = registration_id
