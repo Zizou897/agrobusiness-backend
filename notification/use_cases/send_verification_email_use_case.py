@@ -1,6 +1,6 @@
 from rest_framework.generics import get_object_or_404
 from authentication.models import User
-from notification.send_notification import SendNotification
+from notification.utils.send_notification import SendNotification
 
 
 class SendVerificationEmailUseCase:

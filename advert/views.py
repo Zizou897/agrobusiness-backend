@@ -42,6 +42,9 @@ from core.permissions import (
     AllowOnlyVendorOnDetroyAndCreate,
     AllowUserOnlyOnGet,
 )
+from notification.signals import order_created
+from notification.use_cases.send_notification_order_created_use_case import SendNotificationOrderCreatedUseCase
+from notification.utils.notification_channel_enums import NotificationChannelEnum
 from .models import (
     ProductFavorite,
     ProductOrder,
@@ -312,13 +315,17 @@ class ProductViewSet(ModelViewSet):
         delivery_method: SellerDelivery = serializer.validated_data["delivery_method"]
         payment_method = serializer.validated_data["payment_method"]
 
-        product.make_order(
+        order = product.make_order(
             user=user,
             quantity=quantity,
             delivery_method=delivery_method,
             payment_method=payment_method,
         )
+        channels = [NotificationChannelEnum.SMS]
+        send_notification_order_created_use_case = SendNotificationOrderCreatedUseCase(order.id, channels)
+        send_notification_order_created_use_case.execute()
         # Send notification to seller
+        # order_created.send(sender=self.__class__, order_id=order.id)
         return Response(status=201)
 
 

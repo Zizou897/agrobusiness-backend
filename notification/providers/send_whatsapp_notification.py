@@ -1,4 +1,4 @@
-from notification.send_notification import Notification
+from notification.utils.send_notification import Notification
 
 
 class SendWhatsAppNotification(Notification):

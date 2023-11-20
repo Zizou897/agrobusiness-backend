@@ -166,25 +166,6 @@ class ChangePasswordSerializer(serializers.Serializer):
         pass
 
 
-class FCMDeviceSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), required=False
-    )
-
-    class Meta:
-        model = FCMDevice
-        fields = ["name", "registration_id", "device_id", "type", "user"]
-
-    def to_representation(self, instance):
-        return {
-            "id": instance.id,
-            "name": instance.name,
-            "registration_id": instance.registration_id,
-            "device_id": instance.device_id,
-            "type": instance.type,
-            "user": instance.user.id,
-        }
-
 
 class UserDeliveryAddressEssentialSerializer(serializers.ModelSerializer):
     country = CountrySerializer()

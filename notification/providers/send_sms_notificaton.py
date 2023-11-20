@@ -1,7 +1,6 @@
-from notification.send_notification import Notification
+from notification.utils.send_notification import Notification
 import environ
-from infobip_channels.sms.channel import SMSChannel, Channel
-
+from infobip_channels.sms.channel import SMSChannel
 
 env = environ.Env()
 environ.Env.read_env()

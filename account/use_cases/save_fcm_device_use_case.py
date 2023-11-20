@@ -1,13 +1,15 @@
 from fcm_django.models import FCMDevice
 
+from authentication.models import User
+
 
 class SaveFCMDeviceUseCase:
     @staticmethod
     def execute(**kwargs):
         registration_id = kwargs.get("registration_id")
         device_id = kwargs.get("device_id")
-        device_type = kwargs.get("device_type")
-        user = kwargs.get("user")
+        type = kwargs.get("type")
+        user: User = kwargs.get("user")
         name = kwargs.get("name")
 
         try:
@@ -21,7 +23,7 @@ class SaveFCMDeviceUseCase:
                 device.user = user
                 device.name = name
                 device.device_id = device_id
-                device.type = device_type
+                device.type = type
                 device.save()
                 return device
         except FCMDevice.DoesNotExist:
@@ -30,6 +32,6 @@ class SaveFCMDeviceUseCase:
                 user=user,
                 name=name,
                 device_id=device_id,
-                type=device_type,
+                type=type,
             )
         return device

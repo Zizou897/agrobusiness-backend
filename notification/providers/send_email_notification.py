@@ -1,4 +1,4 @@
-from notification.send_notification import Notification
+from notification.utils.send_notification import Notification
 from typing import Union, List
 from templated_mail.mail import BaseEmailMessage
 
