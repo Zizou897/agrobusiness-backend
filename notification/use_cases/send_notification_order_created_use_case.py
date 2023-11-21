@@ -26,7 +26,7 @@ class SendNotificationOrderCreatedUseCase:
 
         for channel in self.channels:
             if channel == NotificationChannelEnum.PUSH.value:
-                notification_push = SendPushNotification(order.user_id, data_builder)
+                notification_push = SendPushNotification(order.store.user.id, data_builder)
                 send_notification = SendNotification(notification_push)
                 send_notification.push_notification()
             elif channel == NotificationChannelEnum.SMS.value:
