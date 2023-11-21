@@ -24,7 +24,6 @@ class StoreView(ModelViewSet):
 class FCMDeviceView(CreateAPIView):
     serializer_class = FCMDeviceSerializer
     queryset = FCMDevice.objects.all()
-    save_fcm_device_use_case = SaveFCMDeviceUseCase()
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -36,7 +35,7 @@ class FCMDeviceView(CreateAPIView):
         registration_id = serializer.validated_data["registration_id"]
         device_id = serializer.validated_data["device_id"]
 
-        self.save_fcm_device_use_case.execute(
+        SaveFCMDeviceUseCase.execute(
             user=user,
             type=type,
             name=name,

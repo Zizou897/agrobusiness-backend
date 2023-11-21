@@ -12,14 +12,21 @@ class SaveFCMDeviceUseCase:
         user: User = kwargs.get("user")
         name = kwargs.get("name")
 
-        device_exist = FCMDevice.objects.filter(registration_id=registration_id, active=True).exists()
-        if device_exist:
-            return FCMDevice.objects.get(registration_id=registration_id)
-        else:
-            device_is_inactive = FCMDevice.objects.filter(registration_id=registration_id, active=False).exists()
-            if device_is_inactive:
-                # remove the inactive device
-                FCMDevice.objects.filter(registration_id=registration_id, active=False).delete()
+        try:
+            device = FCMDevice.objects.get(registration_id=registration_id)
+
+            # Verify if the device is already registered with the user
+            if device.registration_id == registration_id and device.user == user:
+                return device
+            else:
+                device.registration_id = registration_id
+                device.user = user
+                device.name = name
+                device.device_id = device_id
+                device.type = type
+                device.save()
+                return device
+        except FCMDevice.DoesNotExist:
             device = FCMDevice.objects.create(
                 registration_id=registration_id,
                 user=user,
@@ -27,4 +34,4 @@ class SaveFCMDeviceUseCase:
                 device_id=device_id,
                 type=type,
             )
-            return device
+        return device

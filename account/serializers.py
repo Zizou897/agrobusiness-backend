@@ -46,11 +46,17 @@ class StoreCreateSerializer(serializers.ModelSerializer):
         ]
 
 
-class FCMDeviceSerializer(serializers.ModelSerializer):
+class FCMDeviceSerializer(serializers.Serializer):
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), required=False
     )
+    name = serializers.CharField(required=True)
+    registration_id = serializers.CharField(required=True)
+    device_id = serializers.CharField(required=True)
+    type = serializers.CharField(required=True)
 
-    class Meta:
-        model = FCMDevice
-        fields = ["name", "registration_id", "device_id", "type", "user"]
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
