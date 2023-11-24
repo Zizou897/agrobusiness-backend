@@ -10,6 +10,12 @@ from core.validators import validate_image_extension, validate_image_size
 from settings.models import PaymentMethod
 from ckeditor.fields import RichTextField
 from django.core.validators import MaxValueValidator, MinValueValidator
+from notification.signals import (
+    order_confirmed,
+    order_canceled,
+    order_delivered,
+    order_ready_to_deliver,
+)
 
 
 class ProductType(ExtendedEnum):
@@ -393,6 +399,18 @@ class ProductOrder(models.Model):
         self.total_price = self.unit_price * self.quantity
 
         super(ProductOrder, self).save(*args, **kwargs)
+
+    def send_signal_confirmed(self):
+        order_confirmed.send(sender=self.__class__, order_id=self.id)
+
+    def send_signal_ready_to_deliver(self):
+        order_ready_to_deliver.send(sender=self.__class__, order_id=self.id)
+
+    def send_signal_order_delivered(self):
+        order_delivered.send(sender=self.__class__, order_id=self.id)
+
+    def send_signal_canceled(self):
+        order_canceled.send(sender=self.__class__, order_id=self.id)
 
     class Meta:
         verbose_name = "Product order"

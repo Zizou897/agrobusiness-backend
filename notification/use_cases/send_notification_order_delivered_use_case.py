@@ -37,7 +37,7 @@ class SendNotificationOrderDeliveredUseCase:
                 notification_push = SendPushNotification(order.user_id, data_builder)
                 send_notification = SendNotification(notification_push)
                 send_notification.push_notification()
-            elif channel == NotificationChannelEnum.SMS:
+            elif channel == NotificationChannelEnum.SMS.value:
                 sms_notification = SendSMSNotification(sender="Agrijeune")
                 buyer = order.user.phone_number
                 sms_notification.send(

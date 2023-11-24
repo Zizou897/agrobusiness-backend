@@ -1,4 +1,7 @@
 from datetime import datetime, timedelta
+from advert.use_cases.send_signal_after_update_order_use_case import (
+    SendSignalAfterUpdateOrderUseCase,
+)
 from django.db.models import Avg, Count, Sum
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
@@ -43,7 +46,9 @@ from core.permissions import (
     AllowUserOnlyOnGet,
 )
 from notification.signals import order_created
-from notification.use_cases.send_notification_order_created_use_case import SendNotificationOrderCreatedUseCase
+from notification.use_cases.send_notification_order_created_use_case import (
+    SendNotificationOrderCreatedUseCase,
+)
 from notification.utils.notification_channel_enums import NotificationChannelEnum
 from .models import (
     ProductFavorite,
@@ -53,7 +58,8 @@ from .models import (
     ProductType,
     ProductsSection,
     SellerDelivery,
-    OrderStatus, ProductImage,
+    OrderStatus,
+    ProductImage,
 )
 from .use_cases.update_product_order_status import UpdateProductOrderStatusUseCase
 
@@ -377,7 +383,10 @@ class ProductOrderUpdateStatusView(UpdateAPIView):
             product_order=order, status=status, user=self.request.user
         )
         update_product_order_use_case.execute()
-        ProductOrder.objects.filter(id=order.id).update(status=status)
+        send_signal_after_update_order_use_case = SendSignalAfterUpdateOrderUseCase(
+            status=status, order=order
+        )
+        send_signal_after_update_order_use_case.execute()
         return Response(status=200)
 
 
@@ -404,9 +413,9 @@ class SellerStatisticsAPIView(APIView):
             store__user=user, status=OrderStatus.DELIVERED.value
         ).aggregate(total_products_sold=Sum("quantity"))
 
-        total_product = Product.objects.filter(store__user=user, status=ProductStatus.PUBLISH.value).aggregate(
-            total_product=Count("id")
-        )
+        total_product = Product.objects.filter(
+            store__user=user, status=ProductStatus.PUBLISH.value
+        ).aggregate(total_product=Count("id"))
 
         low_stock_products = Product.objects.filter(
             quantity__lt=10, store__user=user, status=ProductStatus.PUBLISH.value

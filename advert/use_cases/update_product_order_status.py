@@ -2,6 +2,7 @@ from advert.exceptions import StatusNotValidError
 from advert.models import OrderStatus, ProductOrder
 from authentication.models import ProfilTypeEnums, User
 from core.exceptions import NotAuthorized
+from django.db import transaction
 
 
 class UpdateProductOrderStatusUseCase:
@@ -10,6 +11,7 @@ class UpdateProductOrderStatusUseCase:
         self.status: str = kwargs.get("status")
         self.user: User = kwargs.get("user")
 
+    @transaction.atomic
     def execute(self):
         status_is_allowed = self.status in [
             OrderStatus.CANCELED.value,
@@ -62,3 +64,9 @@ class UpdateProductOrderStatusUseCase:
             and self.status not in client_allowed_status
         ):
             raise NotAuthorized()
+
+        ProductOrder.objects.filter(id=self.product_order.id).update(status=self.status)
+
+        # self.product_order.send_signal_confirmed()
+
+        return self.product_order
