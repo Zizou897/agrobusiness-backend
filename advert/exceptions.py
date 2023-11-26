@@ -9,13 +9,13 @@ class CannotDeleteProductWithOrderError(APIException):
 
 class OrderQuantityCannotBeGreaterThanProductQuantityError(APIException):
     status_code = 400
-    default_detail = "La quantité de la commande ne peut pas être supérieure à la quantité du produit"
+    default_detail = "La quantité de la commande ne doit pas être supérieure à la quantité du produit"
     default_code = "order_quantity_cannot_be_greater_than_product_quantity"
 
 
 class OrderQuantityCannotBeZeroError(APIException):
     status_code = 400
-    default_detail = "La quantité de la commande ne peut pas être nulle"
+    default_detail = "La quantité de la commande ne doit pas être nulle"
     default_code = "order_quantity_cannot_be_zero"
 
 

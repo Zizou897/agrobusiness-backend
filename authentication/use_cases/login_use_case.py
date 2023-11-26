@@ -11,12 +11,12 @@ class LoginUseCase:
     def execute(username: str, password: str) -> User:
         user = authenticate(username=username, password=password)
         if not user:
-            raise LoginFailedError
+            raise LoginFailedError()
 
         if not user.is_active:
-            raise LoginFailedError
+            raise LoginFailedError()
 
         if not user.is_verified:
-            raise UserRegistrationNotCompleteError
+            raise UserRegistrationNotCompleteError()
 
         return user

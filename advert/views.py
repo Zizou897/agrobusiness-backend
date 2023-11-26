@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-
+from django.db import transaction
 from advert.exceptions import (
     CannotDeleteProductWithOrderError,
     OnlyOrdererCanCommentError,
@@ -36,6 +36,9 @@ from advert.serializers import (
     ProductsSectionCreateSerializer,
     ProductEssentialSerializer,
     UpdateProductQuantitySerializer,
+)
+from advert.use_cases.update_product_quantity_use_case import (
+    UpdateProductQuantityUseCase,
 )
 from authentication.models import User
 from core.exceptions import NotAuthorized
@@ -365,15 +368,7 @@ class ProductOrderUpdateStatusView(UpdateAPIView):
     serializer_class = UpdateProductOrderStatusSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_update(self, serializer):
-        product_order: ProductOrder = self.get_object()
-        status = serializer.validated_data["status"]
-        update_product_order_use_case = UpdateProductOrderStatusUseCase(
-            product_order=product_order, status=status, user=self.request.user
-        )
-        update_product_order_use_case.execute()
-        ProductOrder.objects.filter(id=product_order.id).update(status=status)
-
+    @transaction.atomic
     def partial_update(self, request, *args, **kwargs):
         order: ProductOrder = self.get_object()
         serializer = UpdateProductOrderStatusSerializer(data=request.data)

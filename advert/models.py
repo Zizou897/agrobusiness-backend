@@ -203,7 +203,9 @@ class Product(models.Model):
 
     def update_quantity(self, quantity):
         self.quantity = quantity
-        self.save(update_fields=["quantity"])
+        if self.quantity == 0:
+            self.stock_status = StockStatus.OUT_OF_STOCK.value
+        self.save(update_fields=["quantity", "stock_status"])
 
     def make_order(self, **kwargs):
         user: User = kwargs.get("user")
@@ -224,13 +226,6 @@ class Product(models.Model):
                 delivery_method.delivery_time
             ),
         )
-        # Update product quantity
-        self.update_quantity(self.quantity - quantity)
-
-        if self.quantity == 0:
-            self.stock_status = StockStatus.OUT_OF_STOCK.value
-            self.save(update_fields=["stock_status"])
-
         return order
 
 
@@ -389,7 +384,7 @@ class ProductOrder(models.Model):
             self.reference = f"PO-{uuid.uuid4().hex[:6].upper()}"
 
         # Check if is a new order
-        is_new_order = not self.pk
+        # is_new_order = not self.pk
 
         # Check if the quantity ordered is greater than the quantity of the product
         if self.quantity > self.product.quantity:

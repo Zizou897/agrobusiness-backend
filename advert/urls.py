@@ -19,12 +19,12 @@ router.register(r"sections", ProductsSectionView, basename="sections")
 router.register(r"seller-delivery", SellerDeliveryView, basename="delivery")
 
 urlpatterns = [
-    path("seller/products/", VendorProductListView.as_view()),
-    path("favorites/", ProductFavoritesListView.as_view()),
-    path("orders/<uuid:pk>/", ProductOrderUpdateStatusView.as_view()),
-    path("orders/", ProductOrderListView.as_view()),
-    path("seller/statistics/", SellerStatisticsAPIView.as_view()),
-    path("seller/weekly-sales/", WeeklySalesAPIView.as_view()),
+    path("seller/products/", VendorProductListView.as_view(), name="seller-products"),
+    path("favorites/", ProductFavoritesListView.as_view(), name="favorites"),
+    path("orders/<uuid:pk>/", ProductOrderUpdateStatusView.as_view(), name="update-order-status"),
+    path("orders/", ProductOrderListView.as_view(), name="orders"),
+    path("seller/statistics/", SellerStatisticsAPIView.as_view(), name="seller-statistics"),
+    path("seller/weekly-sales/", WeeklySalesAPIView.as_view(), name="seller-weekly-sales"),
 ]
 
 urlpatterns += router.urls

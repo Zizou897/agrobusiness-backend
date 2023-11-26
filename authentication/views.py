@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from authentication.exceptions import ClientNotAuthorizedError, VendorNotAuthorizedError
 from authentication.models import ProfilTypeEnums, User, UserDeliveryAddress
 from authentication.serializers import (
     ChangePasswordSerializer,
@@ -43,6 +44,35 @@ class LoginView(CreateAPIView):
         password = serializer.validated_data["password"]
 
         user = LoginUseCase().execute(username=username, password=password)
+
+        if not user.is_client():
+            raise VendorNotAuthorizedError()
+
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        user_essential_serializer = UserEssentialSerializer(user)
+
+        data = {
+            "refresh": str(refresh),
+            "access": access_token,
+            "user": user_essential_serializer.data,
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class LoginVendorView(CreateAPIView):
+    serializer_class = LoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data["username"]
+        password = serializer.validated_data["password"]
+
+        user = LoginUseCase().execute(username=username, password=password)
+
+        if not user.is_vendor():
+            raise ClientNotAuthorizedError()
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)

@@ -10,7 +10,7 @@ from authentication.views import (
     ResendOTPCodeView,
     ResetPasswordRequestView,
     ResetPasswordView,
-    VendorsListView,
+    LoginVendorView,
     UserDeliveryAddressView
 )
 
@@ -21,6 +21,7 @@ router.register(r"delivery-addresses", UserDeliveryAddressView, basename="delive
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),
+    path("login-vendor/", LoginVendorView.as_view(), name="login-vendor"),
     path("email-confirm/", EmailConfirmationView.as_view(), name="email-confirmation"),
     path(
         "reset-password/request/",

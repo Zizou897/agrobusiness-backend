@@ -81,6 +81,9 @@ class User(AbstractUser):
             ProfilTypeEnums.AGRIPRENEUR.value,
             ProfilTypeEnums.MERCHANT.value,
         ]
+    
+    def is_client(self):
+        return self.profil_type == ProfilTypeEnums.USER.value
 
     def __str__(self):
         return self.email

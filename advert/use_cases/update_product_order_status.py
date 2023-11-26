@@ -67,6 +67,4 @@ class UpdateProductOrderStatusUseCase:
 
         ProductOrder.objects.filter(id=self.product_order.id).update(status=self.status)
 
-        # self.product_order.send_signal_confirmed()
-
         return self.product_order
