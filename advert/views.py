@@ -101,6 +101,17 @@ class ProductsSectionView(ModelViewSet):
 
 @extend_schema(
     responses={
+        200: ProductEssentialSerializer,
+    },
+)
+class ProductsListView(ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductEssentialSerializer
+    filterset_class = ProductFilter
+
+
+@extend_schema(
+    responses={
         201: "",
     },
     request=ProductCreateSerializer,
